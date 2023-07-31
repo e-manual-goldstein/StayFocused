@@ -1,50 +1,27 @@
 ﻿using System;
-using System.Threading.Tasks;
 
 namespace StayFocused
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
-            // Start the continuous action loop
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    // Perform the timed action (in this case, "Stay Focused" function)
-                    StayFocused();
+            var taskRunner = new TaskRunner();
 
-                    // Wait for 5 seconds
-                    await Task.Delay(5000); // 5000 milliseconds = 5 seconds
-                }
-            });
+            // Begin the timed tasks
+            taskRunner.Begin();
 
             // Your other asynchronous tasks can be done here or called as methods
             // For example, you can call your asynchronous methods like:
-            // Task.Run(YourOtherAsyncTask);
-            // Task.Run(AnotherAsyncTask);
+            // Task.Run(() => YourOtherAsyncTask(taskRunner));
+            // Task.Run(() => AnotherAsyncTask(taskRunner));
 
-            // Keep the main thread alive
-            Console.WriteLine("StayFocused is running. Press any key to exit...");
+            // Keep the main thread alive until the user presses any key to exit
+            Console.WriteLine("StayFocused is running. Press any key to stop...");
             Console.ReadKey();
+
+            // Stop the timed tasks when the user wants to exit
+            taskRunner.End();
         }
-
-        static void StayFocused()
-        {
-            Console.WriteLine("Stay Focused!");
-        }
-
-        // Your other asynchronous methods can be defined here
-        // For example:
-        // static async Task YourOtherAsyncTask()
-        // {
-        //     // Your asynchronous code here
-        // }
-
-        // static async Task AnotherAsyncTask()
-        // {
-        //     // Your asynchronous code here
-        // }
     }
 }
