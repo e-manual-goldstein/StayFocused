@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -10,11 +11,13 @@ namespace StayFocused
     {
         private CancellationTokenSource cancellationTokenSource;
         private int _interval; // The delay interval for the timed task in milliseconds
+        private ConcurrentDictionary<string, Activity> _activities; // Dictionary to store activities and their scores
 
         public TaskRunner()
         {
             // Set the default interval to 5000 milliseconds (5 seconds)
             _interval = 5000;
+            _activities = new ConcurrentDictionary<string, Activity>();
         }
 
         public void SetInterval(int intervalMilliseconds)
@@ -46,19 +49,14 @@ namespace StayFocused
 
         private void StayFocused()
         {
-            Console.WriteLine(GetActiveWindowTitle());
+            string activeWindowTitle = GetActiveWindowTitle();
+            var activity = _activities.GetOrAdd(activeWindowTitle, new Activity());
+            activity.IncrementActivityScore();
+
+            Console.WriteLine($"{activeWindowTitle} - Score: {activity.ActivityScore}");
         }
 
-        // Your other asynchronous methods can be defined here
-        // For example:
-        // Method to check if the user is currently logged in
-        public bool IsUserLoggedIn()
-        {
-            return Environment.UserInteractive; // Returns true if the user is logged in
-        }
-
-        // Method to get the full title of the currently active window
-        public string GetActiveWindowTitle()
+        private string GetActiveWindowTitle()
         {
             const int nChars = 256;
             IntPtr handle = GetForegroundWindow();
@@ -73,7 +71,5 @@ namespace StayFocused
 
         [DllImport("user32.dll")]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-
-        // ... (rest of the class)
     }
 }
