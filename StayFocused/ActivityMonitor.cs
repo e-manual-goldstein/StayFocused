@@ -1,0 +1,129 @@
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+namespace StayFocused
+{
+    public class ActivityMonitor
+    {
+        readonly string _saveFilePath;
+        TaskRunner _activityTask;
+        TaskRunner _persistenceTask;
+        bool _stationLocked;
+        bool _archiveExisting = true;
+
+        private static ConcurrentDictionary<string, Activity> _activities; // Dictionary to store activities and their scores
+
+        public ActivityMonitor(int activityInterval, int persistenceInterval) 
+        {
+            _saveFilePath = $"{DateTime.Now:yyyyMMdd}.json";
+            _activityTask = new TaskRunner(StayFocused);
+            _persistenceTask = new TaskRunner(SaveActivitiesToFile, persistenceInterval);
+        }
+
+        internal async Task BeginAsync()
+        {
+            await InitialiseActivities();
+            _persistenceTask.Begin();
+            _activityTask.Begin();
+        }
+
+        private async Task InitialiseActivities()
+        {
+            if (File.Exists(_saveFilePath))
+            {
+                var text = await File.ReadAllTextAsync(_saveFilePath);
+                try
+                {
+                    _activities = JsonSerializer.Deserialize<ConcurrentDictionary<string, Activity>>(text);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Unable to load existing activities. Archiving existing file");
+                    ArchiveActivities();
+                }
+            }
+            _activities ??= new();            
+        }
+
+        #region Stay Focused
+
+        private void StayFocused()
+        {
+            var activity = _activities.GetOrAdd(GetActivity(), (key) => new Activity(key));
+            activity.IncrementActivityScore();
+
+            Console.WriteLine($"{activity.Description} - Score: {activity.ActivityScore}");
+            
+        }
+
+        private string GetActivity()
+        {
+            if (_stationLocked)
+            {
+                return "Inactive";
+            }
+            return GetActiveWindowTitle();            
+        }
+
+        private static string GetActiveWindowTitle()
+        {
+            const int nChars = 256;
+            IntPtr handle = GetForegroundWindow();
+            StringBuilder sb = new StringBuilder(nChars);
+            GetWindowText(handle, sb, nChars);
+            return sb.ToString();
+        }
+
+        // Windows API functions for retrieving the active window's title
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+
+        #endregion
+
+        private void SaveActivitiesToFile()
+        {
+            // Serialize the _activities dictionary to JSON
+            string json = JsonSerializer.Serialize(_activities, typeof(ConcurrentDictionary<string, Activity>), new JsonSerializerOptions() { WriteIndented = true });
+            if (_archiveExisting)
+            {
+                ArchiveActivities();
+                _archiveExisting = false;
+            }
+            // Write JSON to the file
+            File.WriteAllTextAsync(_saveFilePath, json);
+        }
+
+        private void ArchiveActivities()
+        {
+            if (File.Exists(_saveFilePath))
+            {
+                var archiveDirectory = Path.Combine(Path.GetDirectoryName(_saveFilePath), "archive");
+                if (!Directory.Exists(archiveDirectory))
+                {
+                    Directory.CreateDirectory(archiveDirectory);
+                }
+                File.Copy(_saveFilePath, Path.Combine(archiveDirectory, Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) + Path.GetFileName(_saveFilePath)));
+            }
+        }
+
+        internal void Lock()
+        {
+            _stationLocked = true;
+        }
+
+        internal void Unlock()
+        {
+            _stationLocked = false;
+        }
+    }
+}
