@@ -71,5 +71,13 @@ namespace StayFocused
 
         [DllImport("user32.dll")]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+
+        internal void Report()
+        {
+            foreach (var (name, activity) in _activities)
+            {
+                Console.WriteLine($"{name}: {activity.ActivityScore}");
+            }
+        }
     }
 }

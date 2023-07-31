@@ -22,6 +22,8 @@ namespace StayFocused
 
             // Stop the timed tasks when the user wants to exit
             taskRunner.End();
+
+            taskRunner.Report();
         }
     }
 }
