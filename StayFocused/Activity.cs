@@ -3,11 +3,8 @@
     public class Activity
     {
         public int ActivityScore { get; private set; }
-        public string Description { get; }
-        public Activity(string descr)
-        {            
-            Description = descr;
-        }
+        public string Description { get; set; }
+        
 
         public void IncrementActivityScore()
         {

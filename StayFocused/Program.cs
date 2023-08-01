@@ -1,24 +1,19 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Concurrent;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace StayFocused
 {
     public class Program
     {
-        static readonly string _saveFilePath = $"{DateTime.Now:yyyyMMdd}.json";
         static ActivityMonitor _activityMonitor;
+        static ConfigManager _configManager;
 
         [SupportedOSPlatform("windows")]
         public static async Task Main(string[] args)
         {
+            _configManager = new ConfigManager();
             _activityMonitor = new ActivityMonitor(5000, 60000);
             ActivateSessionSwitchHandler();
             
@@ -39,6 +34,7 @@ namespace StayFocused
         [SupportedOSPlatform("windows")]
         static void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
         {
+            Console.WriteLine($"Session Switch: {e.Reason}");
             if (e.Reason == SessionSwitchReason.SessionLock)
             {
                 _activityMonitor.Lock();
