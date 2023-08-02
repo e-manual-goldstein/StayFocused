@@ -23,7 +23,7 @@ namespace StayFocused
 
         public ActivityMonitor(int activityInterval, int persistenceInterval) 
         {
-            _activityTask = new TaskRunner(StayFocused);
+            _activityTask = new TaskRunner(StayFocused, activityInterval);
             _persistenceTask = new TaskRunner(SaveActivitiesToFile, persistenceInterval);
         }
 
@@ -38,18 +38,26 @@ namespace StayFocused
                 Unlock();
             }
         }
-        internal async Task BeginAsync()
+
+        internal void Begin()
         {
-            await InitialiseActivities(SaveFilePath);
+            InitialiseActivities(SaveFilePath);
+            ActivateSessionSwitchHandler();
+
             _persistenceTask.Begin();
             _activityTask.Begin();
         }
 
-        private async Task InitialiseActivities(string saveFilePath)
+        private void ActivateSessionSwitchHandler()
+        {
+            SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;            
+        }
+
+        private void InitialiseActivities(string saveFilePath)
         {
             if (File.Exists(saveFilePath))
             {
-                var text = await File.ReadAllTextAsync(saveFilePath);
+                var text = File.ReadAllText(saveFilePath);
                 try
                 {
                     Console.WriteLine("Loading activities from file...");

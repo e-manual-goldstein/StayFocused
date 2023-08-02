@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,14 @@ namespace StayFocused
         public MainWindow()
         {
             InitializeComponent();
+            Closing += MainWindow_Closing;
+            Show();
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            e.Cancel = true; // Cancel the closing event
+            Hide(); // Hide the main window instead of closing it
         }
     }
 }

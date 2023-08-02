@@ -17,14 +17,17 @@ namespace StayFocused
     /// </summary>
     public partial class App : Application
     {
-
+        private ILogManager _logManager;
         private readonly ServiceProvider _serviceProvider;
         public App()
         {
             _serviceProvider = new ServiceCollection()
+                .AddSingleton<ILogManager, DefaultLogger>()
                 .AddSingleton<PluginManager>()
+                .AddSingleton<ConfigManager>()
                 .AddSingleton(new ActivityMonitor(5000, 60000))
                 .BuildServiceProvider();
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
             //Current.Dispatcher.InvokeAsync(Start);
         }
 
@@ -33,33 +36,41 @@ namespace StayFocused
 
         private void OnStartup(object sender, StartupEventArgs e)
         {
-            Current.Dispatcher.InvokeAsync(Start);
+            
+            //Current.Dispatcher.InvokeAsync(
+            Start();
+              //  );
         }
 
 
         [SupportedOSPlatform("windows")]
-        public async Task Start()
+        public void Start()
         {
             InitializeNotifyIcon();
-            var activityMonitor = _serviceProvider.GetService<ActivityMonitor>();
-            
-            ActivateSessionSwitchHandler();
+            _logManager = _serviceProvider.GetService<ILogManager>();
+            _serviceProvider.GetService<ConfigManager>().SettingNotFound += HandleMissingConfig;
+            _serviceProvider.GetService<ActivityMonitor>().Begin();
 
-            await activityMonitor.BeginAsync();
+            _serviceProvider.GetService<PluginManager>().Initialise();
 
             // Keep the main thread alive until the user presses any key to exit
-            Console.WriteLine("StayFocused is running. Press any key to stop...");
-            Console.ReadKey();
+            //Console.WriteLine("StayFocused is running. Press any key to stop...");
+            //Console.ReadKey();
 
         }
 
-        [SupportedOSPlatform("windows")]
-        private void ActivateSessionSwitchHandler()
+        private string HandleMissingConfig(string key)
         {
-            //SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SystemEvents_SessionSwitch);            
+            var inputDialog = new InputDialog($"Please provide a value for the {key} config value");
+            var result = inputDialog.ShowDialog();
+            if (result == true)
+            {
+                return inputDialog.InputValue;
+            }
+            _logManager.Log("Cannot continue without setting");
+            Shutdown();
+            return string.Empty;
         }
-
-
 
         private void InitializeNotifyIcon()
         {
@@ -101,5 +112,7 @@ namespace StayFocused
             notifyIcon.Dispose();
             Shutdown();
         }
+
+
     }
 }
