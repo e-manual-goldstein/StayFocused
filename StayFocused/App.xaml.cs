@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using Application = System.Windows.Application;
+using StayFocused.Plugins;
 
 namespace StayFocused
 {
@@ -20,13 +21,15 @@ namespace StayFocused
         private readonly ServiceProvider _serviceProvider;
         public App()
         {
-            _serviceProvider = new ServiceCollection().BuildServiceProvider();
+            _serviceProvider = new ServiceCollection()
+                .AddSingleton<PluginManager>()
+                .AddSingleton(new ActivityMonitor(5000, 60000))
+                .BuildServiceProvider();
             //Current.Dispatcher.InvokeAsync(Start);
         }
 
         private static NotifyIcon notifyIcon;
         static readonly string _saveFilePath = $"{DateTime.Now:yyyyMMdd}.json";
-        static ActivityMonitor _activityMonitor;
 
         private void OnStartup(object sender, StartupEventArgs e)
         {
@@ -38,10 +41,11 @@ namespace StayFocused
         public async Task Start()
         {
             InitializeNotifyIcon();
-            _activityMonitor = new ActivityMonitor(5000, 60000);
+            var activityMonitor = _serviceProvider.GetService<ActivityMonitor>();
+            
             ActivateSessionSwitchHandler();
 
-            await _activityMonitor.BeginAsync();
+            await activityMonitor.BeginAsync();
 
             // Keep the main thread alive until the user presses any key to exit
             Console.WriteLine("StayFocused is running. Press any key to stop...");
@@ -55,18 +59,7 @@ namespace StayFocused
             //SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SystemEvents_SessionSwitch);            
         }
 
-        [SupportedOSPlatform("windows")]
-        static void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
-        {
-            if (e.Reason == SessionSwitchReason.SessionLock)
-            {
-                _activityMonitor.Lock();
-            }
-            else if (e.Reason == SessionSwitchReason.SessionUnlock)
-            {
-                _activityMonitor.Unlock();
-            }
-        }
+
 
         private void InitializeNotifyIcon()
         {

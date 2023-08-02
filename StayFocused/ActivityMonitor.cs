@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -23,10 +25,21 @@ namespace StayFocused
         public ActivityMonitor(int activityInterval, int persistenceInterval) 
         {
             _saveFilePath = $"{DateTime.Now:yyyyMMdd}.json";
-            _activityTask = new TaskRunner(StayFocused);
+            _activityTask = new TaskRunner(StayFocused, activityInterval);
             _persistenceTask = new TaskRunner(SaveActivitiesToFile, persistenceInterval);
         }
 
+        void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
+        {
+            if (e.Reason == SessionSwitchReason.SessionLock)
+            {
+                Lock();
+            }
+            else if (e.Reason == SessionSwitchReason.SessionUnlock)
+            {
+                Unlock();
+            }
+        }
         internal async Task BeginAsync()
         {
             await InitialiseActivities();
