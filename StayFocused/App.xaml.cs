@@ -1,27 +1,46 @@
 ﻿using Microsoft.Win32;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Drawing;
 using System.Runtime.Versioning;
 
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Forms;
-//using static System.Net.Mime.MediaTypeNames;
+using Application = System.Windows.Application;
 
 namespace StayFocused
 {
-    public class Program
+    /// <summary>
+    /// Interaction logic for App.xaml
+    /// </summary>
+    public partial class App : Application
     {
-        private static NotifyIcon notifyIcon; 
+
+        private readonly ServiceProvider _serviceProvider;
+        public App()
+        {
+            _serviceProvider = new ServiceCollection().BuildServiceProvider();
+            //Current.Dispatcher.InvokeAsync(Start);
+        }
+
+        private static NotifyIcon notifyIcon;
         static readonly string _saveFilePath = $"{DateTime.Now:yyyyMMdd}.json";
         static ActivityMonitor _activityMonitor;
 
+        private void OnStartup(object sender, StartupEventArgs e)
+        {
+            Current.Dispatcher.InvokeAsync(Start);
+        }
+
+
         [SupportedOSPlatform("windows")]
-        public static async Task Main(string[] args)
+        public async Task Start()
         {
             InitializeNotifyIcon();
             _activityMonitor = new ActivityMonitor(5000, 60000);
             ActivateSessionSwitchHandler();
-            
+
             await _activityMonitor.BeginAsync();
 
             // Keep the main thread alive until the user presses any key to exit
@@ -31,7 +50,7 @@ namespace StayFocused
         }
 
         [SupportedOSPlatform("windows")]
-        private static void ActivateSessionSwitchHandler()
+        private void ActivateSessionSwitchHandler()
         {
             //SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SystemEvents_SessionSwitch);            
         }
@@ -49,7 +68,7 @@ namespace StayFocused
             }
         }
 
-        private static void InitializeNotifyIcon()
+        private void InitializeNotifyIcon()
         {
             // Create the NotifyIcon instance
             notifyIcon = new NotifyIcon();
@@ -69,25 +88,25 @@ namespace StayFocused
             notifyIcon.DoubleClick += OnNotifyIconDoubleClick;
         }
 
-        private static void OnNotifyIconClick(object sender, EventArgs e)
+        private void OnNotifyIconClick(object sender, EventArgs e)
         {
             // Handle click event here (e.g., show a tooltip or perform an action)
-            notifyIcon.ShowBalloonTip(1000, "StayFocused", "Application is running!", ToolTipIcon.Info);
+            //notifyIcon.ShowBalloonTip(1000, "StayFocused", "Application is running!", ToolTipIcon.Info);
         }
 
-        private static void OnNotifyIconDoubleClick(object sender, EventArgs e)
+        private void OnNotifyIconDoubleClick(object sender, EventArgs e)
         {
             // Handle double-click event here (e.g., open a window or perform an action)
             // In this example, we'll exit the application on double-click
-            Application.Exit();
+            Shutdown();
         }
 
-        private static void OnExit(object sender, EventArgs e)
+        private void OnExit(object sender, EventArgs e)
         {
             // Clean up resources and exit the application when "Exit" is clicked from the context menu
             notifyIcon.Visible = false;
             notifyIcon.Dispose();
-            Application.Exit();
+            Shutdown();
         }
     }
 }
