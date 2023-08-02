@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Forms;
 using Application = System.Windows.Application;
 using StayFocused.Plugins;
+using System.IO;
 
 namespace StayFocused
 {
@@ -28,6 +29,8 @@ namespace StayFocused
                 .AddSingleton(new ActivityMonitor(5000, 60000))
                 .BuildServiceProvider();
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            AppDomain.CurrentDomain.ProcessExit += OnExit;
+            
             //Current.Dispatcher.InvokeAsync(Start);
         }
 
@@ -76,7 +79,7 @@ namespace StayFocused
         {
             // Create the NotifyIcon instance
             notifyIcon = new NotifyIcon();
-            notifyIcon.Icon = SystemIcons.Application; // You can set your custom icon here
+            notifyIcon.Icon = GetIcon(); // You can set your custom icon here
             notifyIcon.Text = "StayFocused";
             notifyIcon.Visible = true;
 
@@ -90,6 +93,15 @@ namespace StayFocused
 
             // Add a double-click event handler for the NotifyIcon (optional)
             notifyIcon.DoubleClick += OnNotifyIconDoubleClick;
+        }
+
+        private Icon GetIcon()
+        {
+            using (FileStream fileStream = new FileStream("icon.ico", FileMode.Open, FileAccess.Read))
+            {
+                // Create the Icon from the FileStream
+                return new Icon(fileStream);                
+            }
         }
 
         private void OnNotifyIconClick(object sender, EventArgs e)
@@ -110,7 +122,7 @@ namespace StayFocused
             // Clean up resources and exit the application when "Exit" is clicked from the context menu
             notifyIcon.Visible = false;
             notifyIcon.Dispose();
-            Shutdown();
+            
         }
 
 

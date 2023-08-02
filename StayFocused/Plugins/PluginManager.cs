@@ -41,9 +41,7 @@ namespace StayFocused.Plugins
                 }
                 catch (Exception ex)
                 {
-                    _logManager.Log($"Unable to load existing activities {ex.Message}");
-                    _logManager.Log("Archiving existing file");
-                    
+                    _logManager.Log($"Unable to load plugins:\n\t{ex.Message}");
                 }
                 
             }

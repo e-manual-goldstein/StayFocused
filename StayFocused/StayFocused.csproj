@@ -20,4 +20,11 @@
     <ProjectReference Include="..\StayFocused.Module.API\StayFocused.Plugins.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <None Update="icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
