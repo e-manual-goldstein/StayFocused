@@ -27,16 +27,16 @@ namespace StayFocused
 
         internal async Task BeginAsync()
         {
-            await InitialiseActivities();
+            await InitialiseActivities(SaveFilePath);
             _persistenceTask.Begin();
             _activityTask.Begin();
         }
 
-        private async Task InitialiseActivities()
+        private async Task InitialiseActivities(string saveFilePath)
         {
-            if (File.Exists(SaveFilePath))
+            if (File.Exists(saveFilePath))
             {
-                var text = await File.ReadAllTextAsync(SaveFilePath);
+                var text = await File.ReadAllTextAsync(saveFilePath);
                 try
                 {
                     Console.WriteLine("Loading activities from file...");
@@ -46,7 +46,7 @@ namespace StayFocused
                 {
                     Console.WriteLine($"Unable to load existing activities {ex.Message}");
                     Console.WriteLine("Archiving existing file");
-                    ArchiveActivities();
+                    ArchiveActivities(saveFilePath);
                 }
             }
             _activities ??= new();            
@@ -92,28 +92,28 @@ namespace StayFocused
 
         private void SaveActivitiesToFile()
         {
-            // Serialize the _activities dictionary to JSON
+            string saveFilePath = SaveFilePath;
             string json = JsonConvert.SerializeObject(_activities, Formatting.Indented);
             if (_archiveExisting)
             {
-                ArchiveActivities();
+                ArchiveActivities(saveFilePath);
                 _archiveExisting = false;
             }
             // Write JSON to the file
-            File.WriteAllTextAsync(SaveFilePath, json);
+            File.WriteAllTextAsync(saveFilePath, json);
         }
 
-        private void ArchiveActivities()
+        private void ArchiveActivities(string saveFilePath)
         {
-            if (File.Exists(SaveFilePath))
+            if (File.Exists(saveFilePath))
             {
-                var archiveDirectory = Path.Combine(Path.GetDirectoryName(SaveFilePath), "archive");
+                var archiveDirectory = Path.Combine(Path.GetDirectoryName(saveFilePath), "archive");
                 if (!Directory.Exists(archiveDirectory))
                 {
                     Directory.CreateDirectory(archiveDirectory);
                 }
-                Console.WriteLine($"Archiving {SaveFilePath}");
-                File.Copy(SaveFilePath, Path.Combine(archiveDirectory, Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) + Path.GetFileName(SaveFilePath)));
+                Console.WriteLine($"Archiving {saveFilePath}");
+                File.Copy(saveFilePath, Path.Combine(archiveDirectory, Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) + Path.GetFileName(saveFilePath)));
             }
         }
 
