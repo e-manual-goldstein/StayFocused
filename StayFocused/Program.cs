@@ -1,8 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Drawing;
 using System.Runtime.Versioning;
-
 using System.Threading.Tasks;
 using System.Windows.Forms;
 //using static System.Net.Mime.MediaTypeNames;
@@ -11,13 +9,13 @@ namespace StayFocused
 {
     public class Program
     {
-        private static NotifyIcon notifyIcon; 
-        static readonly string _saveFilePath = $"{DateTime.Now:yyyyMMdd}.json";
         static ActivityMonitor _activityMonitor;
+        static ConfigManager _configManager;
 
         [SupportedOSPlatform("windows")]
         public static async Task Main(string[] args)
         {
+            _configManager = new ConfigManager();
             InitializeNotifyIcon();
             _activityMonitor = new ActivityMonitor(5000, 60000);
             ActivateSessionSwitchHandler();
@@ -39,6 +37,7 @@ namespace StayFocused
         [SupportedOSPlatform("windows")]
         static void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
         {
+            Console.WriteLine($"Session Switch: {e.Reason}");
             if (e.Reason == SessionSwitchReason.SessionLock)
             {
                 _activityMonitor.Lock();

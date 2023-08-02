@@ -1,31 +1,29 @@
-﻿using Microsoft.Win32;
+﻿using Newtonsoft.Json;
+using Microsoft.Win32;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace StayFocused
 {
     public class ActivityMonitor
     {
-        readonly string _saveFilePath;
         TaskRunner _activityTask;
         TaskRunner _persistenceTask;
         bool _stationLocked;
         bool _archiveExisting = true;
 
         private static ConcurrentDictionary<string, Activity> _activities; // Dictionary to store activities and their scores
+        
+        string SaveFilePath => $"{DateTime.Now:yyyyMMdd}.json";
 
         public ActivityMonitor(int activityInterval, int persistenceInterval) 
         {
-            _saveFilePath = $"{DateTime.Now:yyyyMMdd}.json";
-            _activityTask = new TaskRunner(StayFocused, activityInterval);
+            _activityTask = new TaskRunner(StayFocused);
             _persistenceTask = new TaskRunner(SaveActivitiesToFile, persistenceInterval);
         }
 
@@ -42,24 +40,26 @@ namespace StayFocused
         }
         internal async Task BeginAsync()
         {
-            await InitialiseActivities();
+            await InitialiseActivities(SaveFilePath);
             _persistenceTask.Begin();
             _activityTask.Begin();
         }
 
-        private async Task InitialiseActivities()
+        private async Task InitialiseActivities(string saveFilePath)
         {
-            if (File.Exists(_saveFilePath))
+            if (File.Exists(saveFilePath))
             {
-                var text = await File.ReadAllTextAsync(_saveFilePath);
+                var text = await File.ReadAllTextAsync(saveFilePath);
                 try
                 {
-                    _activities = JsonSerializer.Deserialize<ConcurrentDictionary<string, Activity>>(text);
+                    Console.WriteLine("Loading activities from file...");
+                    _activities = JsonConvert.DeserializeObject<ConcurrentDictionary<string, Activity>>(text);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Unable to load existing activities. Archiving existing file");
-                    ArchiveActivities();
+                    Console.WriteLine($"Unable to load existing activities {ex.Message}");
+                    Console.WriteLine("Archiving existing file");
+                    ArchiveActivities(saveFilePath);
                 }
             }
             _activities ??= new();            
@@ -69,7 +69,7 @@ namespace StayFocused
 
         private void StayFocused()
         {
-            var activity = _activities.GetOrAdd(GetActivity(), (key) => new Activity(key));
+            var activity = _activities.GetOrAdd(GetActivity(), (key) => new Activity() {  Description = key });
             activity.IncrementActivityScore();
 
             Console.WriteLine($"{activity.Description} - Score: {activity.ActivityScore}");
@@ -105,27 +105,28 @@ namespace StayFocused
 
         private void SaveActivitiesToFile()
         {
-            // Serialize the _activities dictionary to JSON
-            string json = JsonSerializer.Serialize(_activities, typeof(ConcurrentDictionary<string, Activity>), new JsonSerializerOptions() { WriteIndented = true });
+            string saveFilePath = SaveFilePath;
+            string json = JsonConvert.SerializeObject(_activities, Formatting.Indented);
             if (_archiveExisting)
             {
-                ArchiveActivities();
+                ArchiveActivities(saveFilePath);
                 _archiveExisting = false;
             }
             // Write JSON to the file
-            File.WriteAllTextAsync(_saveFilePath, json);
+            File.WriteAllTextAsync(saveFilePath, json);
         }
 
-        private void ArchiveActivities()
+        private void ArchiveActivities(string saveFilePath)
         {
-            if (File.Exists(_saveFilePath))
+            if (File.Exists(saveFilePath))
             {
-                var archiveDirectory = Path.Combine(Path.GetDirectoryName(_saveFilePath), "archive");
+                var archiveDirectory = Path.Combine(Path.GetDirectoryName(saveFilePath), "archive");
                 if (!Directory.Exists(archiveDirectory))
                 {
                     Directory.CreateDirectory(archiveDirectory);
                 }
-                File.Copy(_saveFilePath, Path.Combine(archiveDirectory, Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) + Path.GetFileName(_saveFilePath)));
+                Console.WriteLine($"Archiving {saveFilePath}");
+                File.Copy(saveFilePath, Path.Combine(archiveDirectory, Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) + Path.GetFileName(saveFilePath)));
             }
         }
 
