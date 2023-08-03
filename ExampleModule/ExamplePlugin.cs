@@ -1,4 +1,4 @@
-﻿using StayFocused.Plugins;
+﻿using StayFocused.Api;
 
 namespace ExampleModule
 {

@@ -4,11 +4,11 @@ using System;
 using System.Drawing;
 using System.Runtime.Versioning;
 
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using Application = System.Windows.Application;
 using StayFocused.Plugins;
+using StayFocused.Api;
 using System.IO;
 
 namespace StayFocused
@@ -26,7 +26,7 @@ namespace StayFocused
                 .AddSingleton<ILogManager, DefaultLogger>()
                 .AddSingleton<PluginManager>()
                 .AddSingleton<ConfigManager>()
-                .AddSingleton(new ActivityMonitor(5000, 60000))
+                .AddSingleton<IActivityMonitor>(new ActivityMonitor(5000, 60000))
                 .BuildServiceProvider();
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             AppDomain.CurrentDomain.ProcessExit += OnExit;
@@ -52,7 +52,7 @@ namespace StayFocused
             InitializeNotifyIcon();
             _logManager = _serviceProvider.GetService<ILogManager>();
             _serviceProvider.GetService<ConfigManager>().SettingNotFound += HandleMissingConfig;
-            _serviceProvider.GetService<ActivityMonitor>().Begin();
+            _serviceProvider.GetService<IActivityMonitor>().Begin();
 
             _serviceProvider.GetService<PluginManager>().Initialise();
 

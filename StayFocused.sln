@@ -5,9 +5,9 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StayFocused", "StayFocused\StayFocused.csproj", "{5384046C-2307-4F58-830C-408EE460D0B7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StayFocused.Plugins", "StayFocused.Module.API\StayFocused.Plugins.csproj", "{45429119-4B5E-4B35-B656-E305BFD00505}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StayFocused.Api", "StayFocused.Api\StayFocused.Api.csproj", "{45429119-4B5E-4B35-B656-E305BFD00505}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleModule", "ExampleModule\ExampleModule.csproj", "{7FA1F15A-9F21-4F34-AE5F-F9B87B4083B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleModule", "ExampleModule\ExampleModule.csproj", "{7FA1F15A-9F21-4F34-AE5F-F9B87B4083B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

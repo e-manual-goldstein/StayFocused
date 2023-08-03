@@ -4,13 +4,12 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Text;
-using System.Threading.Tasks;
+using StayFocused.Api;
 
 namespace StayFocused
 {
-    public class ActivityMonitor
+    public class ActivityMonitor : IActivityMonitor
     {
         TaskRunner _activityTask;
         TaskRunner _persistenceTask;
@@ -39,7 +38,7 @@ namespace StayFocused
             }
         }
 
-        internal void Begin()
+        public void Begin()
         {
             InitialiseActivities(SaveFilePath);
             ActivateSessionSwitchHandler();

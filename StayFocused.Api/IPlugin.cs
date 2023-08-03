@@ -1,4 +1,4 @@
-﻿namespace StayFocused.Plugins
+﻿namespace StayFocused.Api
 {
     public interface IPlugin
     {

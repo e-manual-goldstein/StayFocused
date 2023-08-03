@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StayFocused.Module.API\StayFocused.Plugins.csproj" />
+    <ProjectReference Include="..\StayFocused.Api\StayFocused.Api.csproj" />
   </ItemGroup>
 
 </Project>
