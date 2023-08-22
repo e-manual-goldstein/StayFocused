@@ -1,4 +1,4 @@
-﻿namespace StayFocused.Api
+﻿namespace StayFocused
 {
     public sealed class PluginDefinition
     {
@@ -6,6 +6,6 @@
 
         public string FullTypeName { get; set; }
 
-        public string ModuleName { get; set; }
+        public string ModuleLocation { get; set; }
     }
 }

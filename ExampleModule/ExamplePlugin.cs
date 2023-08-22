@@ -1,4 +1,6 @@
-﻿using StayFocused.Api;
+﻿using Microsoft.Extensions.DependencyInjection;
+using StayFocused;
+using StayFocused.Api;
 
 namespace ExampleModule
 {
@@ -6,5 +8,14 @@ namespace ExampleModule
     {
         public string PluginName => "Example Plugin";
 
+        public void OnPluginLoaded(IServiceCollection services)
+        {
+            
+        }
+
+        public void OnServicesBuilt(IServiceProvider serviceCollection)
+        {
+
+        }
     }
 }

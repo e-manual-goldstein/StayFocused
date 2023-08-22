@@ -10,6 +10,7 @@ using Application = System.Windows.Application;
 using StayFocused.Plugins;
 using StayFocused.Api;
 using System.IO;
+using System.Windows.Forms.Design;
 
 namespace StayFocused
 {
@@ -22,16 +23,47 @@ namespace StayFocused
         private readonly ServiceProvider _serviceProvider;
         public App()
         {
-            _serviceProvider = new ServiceCollection()
-                .AddSingleton<ILogManager, DefaultLogger>()
-                .AddSingleton<PluginManager>()
-                .AddSingleton<ConfigManager>()
-                .AddSingleton<IActivityMonitor>(new ActivityMonitor(5000, 60000))
-                .BuildServiceProvider();
+            var baseServices = RegisterBaseServices();
+            _serviceProvider = WithPlugins(baseServices);
+            
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             AppDomain.CurrentDomain.ProcessExit += OnExit;
             
             //Current.Dispatcher.InvokeAsync(Start);
+        }
+
+        private ServiceCollection RegisterBaseServices()
+        {
+            var services = new ServiceCollection();
+            services.AddSingleton((options) => new ConfigManager());
+            services.AddSingleton<ILogManager, DefaultLogger>();
+            services.AddSingleton<ConfigManager>();
+            services.AddSingleton<IActivityMonitor>(new ActivityMonitor(5000, 60000));
+            services.AddSingleton<PluginService>();
+            
+            return services;
+        }
+
+        private ServiceProvider WithPlugins(ServiceCollection baseServices)
+        {
+            bool rebuildServices = false;
+            var serviceCollection = baseServices.BuildServiceProvider();
+            var pluginService = serviceCollection.GetService<PluginService>();
+            pluginService.Initialise();
+            foreach (var (name, plugin) in pluginService.Plugins)
+            {
+                plugin.OnPluginLoaded(baseServices);
+                rebuildServices = true;
+            }
+            if (rebuildServices)
+            {
+                serviceCollection = baseServices.BuildServiceProvider();
+            }
+            foreach (var (name, plugin) in pluginService.Plugins)
+            {
+                plugin.OnServicesBuilt(serviceCollection);
+            }
+            return serviceCollection;
         }
 
         private static NotifyIcon notifyIcon;
@@ -53,8 +85,6 @@ namespace StayFocused
             _logManager = _serviceProvider.GetService<ILogManager>();
             _serviceProvider.GetService<ConfigManager>().SettingNotFound += HandleMissingConfig;
             _serviceProvider.GetService<IActivityMonitor>().Begin();
-
-            _serviceProvider.GetService<PluginManager>().Initialise();
 
             // Keep the main thread alive until the user presses any key to exit
             //Console.WriteLine("StayFocused is running. Press any key to stop...");

@@ -2,6 +2,6 @@
   "ExamplePlugin": {
     "Name": "ExamplePlugin",
     "FullTypeName": "ExampleModule.ExamplePlugin",
-	"ModuleName": "..\\ExampleModule\\bin\\Debug\\net6.0\\ExampleModule.dll",
+	  "ModuleName": "..\\ExampleModule\\bin\\Debug\\net6.0\\ExampleModule.dll",
   }
 }

@@ -8,6 +8,18 @@ namespace StayFocused
 {
     public class ConfigManager
     {
+        public ConfigManager()
+        {
+        }
+
+        public ConfigManager(bool fullReset)
+        {
+            if (fullReset)
+            {
+                File.Delete(ConfigFilePath);
+            }
+        }
+
         private const string ConfigFilePath = "config.json";
         private readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions { WriteIndented = true };
 

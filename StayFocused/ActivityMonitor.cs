@@ -108,6 +108,11 @@ namespace StayFocused
         [DllImport("user32.dll")]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint dwProcessId);
+
+
+
         #endregion
 
         private void SaveActivitiesToFile()

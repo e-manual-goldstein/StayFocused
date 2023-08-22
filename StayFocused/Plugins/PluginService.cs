@@ -8,22 +8,22 @@ using System.Reflection;
 
 namespace StayFocused.Plugins
 {
-    internal class PluginManager
+    public class PluginService
     {
         ConfigManager _configManager;
         IDictionary<string, IPlugin> _plugins;
-        ILogManager _logManager;
 
-        public PluginManager(ConfigManager configManager, ILogManager logManager) 
+        public PluginService(ConfigManager configManager)
         {
             _configManager = configManager;
-            _logManager = logManager;
         }
+
+        public IDictionary<string, IPlugin> Plugins => _plugins;
 
         internal void Initialise()
         {
             var pluginConfigPath = _configManager.GetConfigSetting("PluginConfig");
-            LoadPluginConfig(pluginConfigPath);
+            _plugins = LoadPluginConfig(pluginConfigPath);
         }
 
         private IDictionary<string, IPlugin> LoadPluginConfig(string pluginConfigPath)
@@ -33,15 +33,14 @@ namespace StayFocused.Plugins
                 var text = File.ReadAllText(pluginConfigPath);
                 try
                 {
-                    _logManager.Log("Loading plugin config from file...");
                     var plugins = JsonConvert.DeserializeObject<Dictionary<string, PluginDefinition>>(text);
-                    _plugins = CreatePlugins(plugins).ToDictionary(t => t.PluginName);
+                    return CreatePlugins(plugins).ToDictionary(t => t.PluginName);
                 }
                 catch (Exception ex)
                 {
-                    _logManager.Log($"Unable to load plugins:\n\t{ex.Message}");
+                    Console.WriteLine($"Unable to load plugins:\n\t{ex.Message}");
                 }
-                
+
             }
             return new Dictionary<string, IPlugin>();
         }
@@ -50,7 +49,7 @@ namespace StayFocused.Plugins
         {
             foreach (var (name, pluginDefinition) in pluginDefinitions)
             {
-                if (TryLoadModule(pluginDefinition.ModuleName, out var module))
+                if (TryLoadModule(pluginDefinition.ModuleLocation, out var module))
                 {
                     if (TryLoadPlugin(module, pluginDefinition.FullTypeName, out var plugin))
                     {
@@ -62,7 +61,7 @@ namespace StayFocused.Plugins
 
         private bool TryLoadPlugin(Assembly module, string fullTypeName, out IPlugin plugin)
         {
-            plugin = null;            
+            plugin = null;
             try
             {
                 var pluginType = module.GetType(fullTypeName);
@@ -73,8 +72,8 @@ namespace StayFocused.Plugins
             }
             catch (Exception ex)
             {
-                _logManager.Log($"Could not load plugin: {fullTypeName}");
-                _logManager.Log(ex.Message);
+                Console.WriteLine($"Could not load plugin: {fullTypeName}");
+                Console.WriteLine(ex.Message);
             }
             return plugin != null;
         }
@@ -87,13 +86,13 @@ namespace StayFocused.Plugins
             {
                 try
                 {
-                    module = Assembly.LoadFrom(moduleName);     
+                    module = Assembly.LoadFrom(moduleName);
                     success = true;
                 }
                 catch (Exception ex)
                 {
-                    _logManager.Log($"Could not load module {moduleName}");
-                    _logManager.Log(ex.Message);
+                    Console.WriteLine($"Could not load module {moduleName}");
+                    Console.WriteLine(ex.Message);
                     throw;
                 }
             }
