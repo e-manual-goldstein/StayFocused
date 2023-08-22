@@ -3,8 +3,6 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using StayFocused.Api;
 using StayFocused.Activities;
 using System.Collections.Generic;
@@ -14,15 +12,16 @@ namespace StayFocused
 {
     public class ActivityMonitor : IActivityMonitor
     {
-        static BasicActivityHandler _basicActivityHandler = new BasicActivityHandler();
-        static InActivity _inactive = new InActivity();
+        //static BasicActivityHandler _basicActivityHandler = new BasicActivityHandler();
+        //static InActivity _inactive = new InActivity();
 
         TaskRunner _activityTask;
         TaskRunner _persistenceTask;
         bool _stationLocked;
         bool _archiveExisting = true;
 
-        private static ConcurrentDictionary<string, Activity> _activities; // Dictionary to store activities and their scores
+        private static ConcurrentDictionary<string, Activity> _activities;
+        // Dictionary to store activities and their scores
         private Dictionary<string, IActivityHandler> _handlers = new Dictionary<string, IActivityHandler>();
 
         string SaveFilePath => $"{DateTime.Now:yyyyMMdd}.json";
@@ -102,54 +101,35 @@ namespace StayFocused
 
         private IActivity GetActivity()
         {
-            var hWnd = GetForegroundWindow(); 
+            var hWnd = WinApi.GetForegroundWindow(); 
             if (_stationLocked)
             {
-                return _inactive;
+                return _activities.GetOrAdd("Inactive", NewActivity);
             }
             var activeProcess = GetWindowProcessName(hWnd);
             if (_handlers.TryGetValue(activeProcess, out var handler))
             {
-                return handler.GetActivity(hWnd);
+                return _activities.GetOrAdd(handler.GetActivityDescription(hWnd), NewActivity);
             }
-            return _basicActivityHandler.GetBasicActivity(GetWindowTitle(hWnd));
+            return _activities.GetOrAdd(WinApi.GetWindowTitle(hWnd), NewActivity);
         }
 
-        private static string GetWindowTitle(IntPtr handle)
+        private Activity NewActivity(string arg)
         {
-            const int nChars = 256;
-            StringBuilder sb = new StringBuilder(nChars);
-            GetWindowText(handle, sb, nChars);
-            return sb.ToString();
+            return new Activity() { Description = arg };
         }
 
-        // Windows API functions for retrieving the active window's title
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
-
-        [DllImport("psapi.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern bool GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, [Out] StringBuilder lpBaseName, int nSize);
-        
         public static string GetActiveWindowTitleAndProcessName()
         {
-            IntPtr hWnd = GetForegroundWindow();
+            IntPtr hWnd = WinApi.GetForegroundWindow();
             
-            return $"Active Window Title: {GetWindowTitle(hWnd)} Process Name: {GetWindowProcessName(hWnd)}";
+            return $"Active Window Title: {WinApi.GetWindowTitle(hWnd)} Process Name: {GetWindowProcessName(hWnd)}";
         }
 
         private static string GetWindowProcessName(IntPtr hWnd)
         {
             uint processId;
-            GetWindowThreadProcessId(hWnd, out processId);
+            WinApi.GetWindowThreadProcessId(hWnd, out processId);
 
             System.Diagnostics.Process process = System.Diagnostics.Process.GetProcessById((int)processId);
             return process.ProcessName;

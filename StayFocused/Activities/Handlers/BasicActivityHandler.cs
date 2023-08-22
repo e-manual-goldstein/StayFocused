@@ -14,14 +14,16 @@ namespace StayFocused.Activities.Handlers
 
         }
 
+        public string GetActivityDescription(IntPtr hWnd)
+        {
+            throw new NotImplementedException();
+        }
+
         public IActivity GetBasicActivity(string description)
         {
             return new Activity() { Description = description };
         }
 
-        public IActivity GetActivity(IntPtr hWnd)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }
