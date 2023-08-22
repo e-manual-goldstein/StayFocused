@@ -11,6 +11,8 @@ using StayFocused.Plugins;
 using StayFocused.Api;
 using System.IO;
 using System.Windows.Forms.Design;
+using StayFocused.Activities;
+using StayFocused.Activities.Handlers;
 
 namespace StayFocused
 {
@@ -84,12 +86,22 @@ namespace StayFocused
             InitializeNotifyIcon();
             _logManager = _serviceProvider.GetService<ILogManager>();
             _serviceProvider.GetService<ConfigManager>().SettingNotFound += HandleMissingConfig;
-            _serviceProvider.GetService<IActivityMonitor>().Begin();
+
+
+            StartActivityMonitor();
+            
 
             // Keep the main thread alive until the user presses any key to exit
             //Console.WriteLine("StayFocused is running. Press any key to stop...");
             //Console.ReadKey();
 
+        }
+
+        private void StartActivityMonitor()
+        {
+            var activityMonitor = _serviceProvider.GetService<IActivityMonitor>();
+            activityMonitor.AddCustomHandler("firefox", new FirefoxActivityHandler());
+            activityMonitor.Begin();
         }
 
         private string HandleMissingConfig(string key)

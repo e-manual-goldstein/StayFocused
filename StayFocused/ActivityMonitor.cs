@@ -6,24 +6,40 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using StayFocused.Api;
+using StayFocused.Activities;
+using System.Collections.Generic;
+using StayFocused.Activities.Handlers;
 
 namespace StayFocused
 {
     public class ActivityMonitor : IActivityMonitor
     {
+        static BasicActivityHandler _basicActivityHandler = new BasicActivityHandler();
+        static InActivity _inactive = new InActivity();
+
         TaskRunner _activityTask;
         TaskRunner _persistenceTask;
         bool _stationLocked;
         bool _archiveExisting = true;
 
         private static ConcurrentDictionary<string, Activity> _activities; // Dictionary to store activities and their scores
-        
+        private Dictionary<string, IActivityHandler> _handlers = new Dictionary<string, IActivityHandler>();
+
         string SaveFilePath => $"{DateTime.Now:yyyyMMdd}.json";
 
         public ActivityMonitor(int activityInterval, int persistenceInterval) 
         {
             _activityTask = new TaskRunner(StayFocused, activityInterval);
             _persistenceTask = new TaskRunner(SaveActivitiesToFile, persistenceInterval);
+        }
+
+        public void AddCustomHandler(string processName, IActivityHandler activityHandler)
+        {
+            if (_handlers.ContainsKey(processName))
+            {
+                throw new NotImplementedException();
+            }
+            _handlers[processName] = activityHandler;
         }
 
         void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
@@ -76,26 +92,32 @@ namespace StayFocused
 
         private void StayFocused()
         {
-            var activity = _activities.GetOrAdd(GetActivity(), (key) => new Activity() {  Description = key });
+            
+            var activity = GetActivity();
             activity.IncrementActivityScore();
 
             Console.WriteLine($"{activity.Description} - Score: {activity.ActivityScore}");
             
         }
 
-        private string GetActivity()
+        private IActivity GetActivity()
         {
+            var hWnd = GetForegroundWindow(); 
             if (_stationLocked)
             {
-                return "Inactive";
+                return _inactive;
             }
-            return GetActiveWindowTitle();            
+            var activeProcess = GetWindowProcessName(hWnd);
+            if (_handlers.TryGetValue(activeProcess, out var handler))
+            {
+                return handler.GetActivity(hWnd);
+            }
+            return _basicActivityHandler.GetBasicActivity(GetWindowTitle(hWnd));
         }
 
-        private static string GetActiveWindowTitle()
+        private static string GetWindowTitle(IntPtr handle)
         {
             const int nChars = 256;
-            IntPtr handle = GetForegroundWindow();
             StringBuilder sb = new StringBuilder(nChars);
             GetWindowText(handle, sb, nChars);
             return sb.ToString();
@@ -109,8 +131,29 @@ namespace StayFocused
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint dwProcessId);
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
+
+        [DllImport("psapi.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, [Out] StringBuilder lpBaseName, int nSize);
+        
+        public static string GetActiveWindowTitleAndProcessName()
+        {
+            IntPtr hWnd = GetForegroundWindow();
+            
+            return $"Active Window Title: {GetWindowTitle(hWnd)} Process Name: {GetWindowProcessName(hWnd)}";
+        }
+
+        private static string GetWindowProcessName(IntPtr hWnd)
+        {
+            uint processId;
+            GetWindowThreadProcessId(hWnd, out processId);
+
+            System.Diagnostics.Process process = System.Diagnostics.Process.GetProcessById((int)processId);
+            return process.ProcessName;
+        }
 
 
         #endregion
