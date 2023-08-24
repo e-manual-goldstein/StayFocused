@@ -1,0 +1,26 @@
+﻿<Window x:Class="StayFocused.GUI.DailySummary"
+xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Item Table" Height="300" Width="400">
+    <Grid>
+        <!-- Center the table both horizontally and vertically -->
+        <Viewbox HorizontalAlignment="Center" VerticalAlignment="Center">
+
+            <!-- Limit table dimensions to be smaller than the containing Grid -->
+            <Grid MaxWidth="400" MaxHeight="300">
+
+                <!-- Your table content goes here -->
+                <ListView Name="ItemListView">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Column 1" Width="100" DisplayMemberBinding="{Binding Column1}" />
+                            <GridViewColumn Header="Column 2" Width="100" DisplayMemberBinding="{Binding Column2}" />
+                            <!-- Add more columns as needed -->
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+            </Grid>
+        </Viewbox>
+    </Grid>
+</Window>

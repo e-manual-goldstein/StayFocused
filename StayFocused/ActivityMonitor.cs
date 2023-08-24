@@ -95,28 +95,29 @@ namespace StayFocused
             var activity = GetActivity();
             activity.IncrementActivityScore();
 
-            Console.WriteLine($"{activity.Description} - Score: {activity.ActivityScore}");
+            Console.WriteLine($"{activity.ProcessName} - Score: {activity.ActivityScore}");
             
         }
 
         private IActivity GetActivity()
         {
             var hWnd = WinApi.GetForegroundWindow(); 
-            if (_stationLocked)
-            {
-                return _activities.GetOrAdd("Inactive", NewActivity);
-            }
+            //if (_stationLocked)
+            //{
+            //    return _activities.GetOrAdd("Inactive", NewActivity);
+            //}
             var activeProcess = GetWindowProcessName(hWnd);
-            if (_handlers.TryGetValue(activeProcess, out var handler))
+            var windowTitle = WinApi.GetWindowTitle(hWnd);
+            return _activities.GetOrAdd(ActivityName(activeProcess, windowTitle), (key) => new Activity()
             {
-                return _activities.GetOrAdd(handler.GetActivityDescription(hWnd), NewActivity);
-            }
-            return _activities.GetOrAdd(WinApi.GetWindowTitle(hWnd), NewActivity);
+                ProcessName = activeProcess,
+                WindowTitle = windowTitle,
+            });
         }
 
-        private Activity NewActivity(string arg)
+        private string ActivityName(string processName, string windowTitle)
         {
-            return new Activity() { Description = arg };
+            return $"{processName};{windowTitle}";
         }
 
         public static string GetActiveWindowTitleAndProcessName()

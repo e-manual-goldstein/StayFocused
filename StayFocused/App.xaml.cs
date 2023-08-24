@@ -23,13 +23,15 @@ namespace StayFocused
     {
         private ILogManager _logManager;
         private readonly ServiceProvider _serviceProvider;
+        private readonly SystemMenu _systemMenu;
         public App()
         {
+            _systemMenu = new SystemMenu();
             var baseServices = RegisterBaseServices();
             _serviceProvider = WithPlugins(baseServices);
             
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            AppDomain.CurrentDomain.ProcessExit += OnExit;
+            AppDomain.CurrentDomain.ProcessExit += _systemMenu.OnExit;
             
             //Current.Dispatcher.InvokeAsync(Start);
         }
@@ -68,7 +70,6 @@ namespace StayFocused
             return serviceCollection;
         }
 
-        private static NotifyIcon notifyIcon;
         static readonly string _saveFilePath = $"{DateTime.Now:yyyyMMdd}.json";
 
         private void OnStartup(object sender, StartupEventArgs e)
@@ -83,7 +84,7 @@ namespace StayFocused
         [SupportedOSPlatform("windows")]
         public void Start()
         {
-            InitializeNotifyIcon();
+            _systemMenu.Initialise(this);
             _logManager = _serviceProvider.GetService<ILogManager>();
             _serviceProvider.GetService<ConfigManager>().SettingNotFound += HandleMissingConfig;
 
@@ -101,6 +102,7 @@ namespace StayFocused
         {
             var activityMonitor = _serviceProvider.GetService<IActivityMonitor>();
             activityMonitor.AddCustomHandler("firefox", new FirefoxActivityHandler());
+            //activityMonitor.AddCustomHandler("msedge", new EdgeActivityHandler());
             activityMonitor.Begin();
         }
 
@@ -116,57 +118,5 @@ namespace StayFocused
             Shutdown();
             return string.Empty;
         }
-
-        private void InitializeNotifyIcon()
-        {
-            // Create the NotifyIcon instance
-            notifyIcon = new NotifyIcon();
-            notifyIcon.Icon = GetIcon(); // You can set your custom icon here
-            notifyIcon.Text = "StayFocused";
-            notifyIcon.Visible = true;
-
-            // Set up a context menu for the NotifyIcon (using ContextMenuStrip)
-            ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
-            contextMenuStrip.Items.Add("Exit", null, OnExit);
-            notifyIcon.ContextMenuStrip = contextMenuStrip;
-
-            // Add a click event handler for the NotifyIcon (optional)
-            notifyIcon.Click += OnNotifyIconClick;
-
-            // Add a double-click event handler for the NotifyIcon (optional)
-            notifyIcon.DoubleClick += OnNotifyIconDoubleClick;
-        }
-
-        private Icon GetIcon()
-        {
-            using (FileStream fileStream = new FileStream("icon.ico", FileMode.Open, FileAccess.Read))
-            {
-                // Create the Icon from the FileStream
-                return new Icon(fileStream);                
-            }
-        }
-
-        private void OnNotifyIconClick(object sender, EventArgs e)
-        {
-            // Handle click event here (e.g., show a tooltip or perform an action)
-            //notifyIcon.ShowBalloonTip(1000, "StayFocused", "Application is running!", ToolTipIcon.Info);
-        }
-
-        private void OnNotifyIconDoubleClick(object sender, EventArgs e)
-        {
-            // Handle double-click event here (e.g., open a window or perform an action)
-            // In this example, we'll exit the application on double-click
-            Shutdown();
-        }
-
-        private void OnExit(object sender, EventArgs e)
-        {
-            // Clean up resources and exit the application when "Exit" is clicked from the context menu
-            notifyIcon.Visible = false;
-            notifyIcon.Dispose();
-            
-        }
-
-
     }
 }

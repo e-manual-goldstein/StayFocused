@@ -31,11 +31,18 @@ namespace StayFocused
             {
                 while (!cancellationTokenSource.IsCancellationRequested)
                 {
-                    // Execute the task action
-                    TaskAction?.Invoke();
+                    try
+                    {
+                        // Execute the task action
+                        TaskAction?.Invoke();
 
-                    // Wait for the specified interval
-                    await Task.Delay(_interval);
+                        // Wait for the specified interval
+                        await Task.Delay(_interval);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                 }
             });
         }

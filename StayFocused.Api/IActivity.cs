@@ -4,7 +4,7 @@ namespace StayFocused
 {
     public interface IActivity
     {
-        string Description { get; }
+        string ProcessName { get; }
         int ActivityScore { get; }
 
         //string GetDescription(IntPtr hWnd);

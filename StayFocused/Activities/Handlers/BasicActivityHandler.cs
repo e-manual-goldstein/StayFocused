@@ -21,7 +21,7 @@ namespace StayFocused.Activities.Handlers
 
         public IActivity GetBasicActivity(string description)
         {
-            return new Activity() { Description = description };
+            return new Activity() { ProcessName = description };
         }
 
         
