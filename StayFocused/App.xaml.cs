@@ -25,10 +25,10 @@ namespace StayFocused
         private readonly SystemMenu _systemMenu;
         public App()
         {
-            _systemMenu = new SystemMenu();
             var baseServices = RegisterBaseServices();
             _serviceProvider = WithPlugins(baseServices);
             
+            _systemMenu = _serviceProvider.GetService<SystemMenu>();
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             AppDomain.CurrentDomain.ProcessExit += _systemMenu.OnExit;
             
@@ -38,6 +38,7 @@ namespace StayFocused
         private ServiceCollection RegisterBaseServices()
         {
             var services = new ServiceCollection();
+            services.AddSingleton<SystemMenu>();
             services.AddSingleton((options) => new ConfigManager());
             services.AddSingleton<ILogManager, DefaultLogger>();
             services.AddSingleton<ConfigManager>();

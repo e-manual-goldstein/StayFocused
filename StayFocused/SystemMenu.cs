@@ -15,7 +15,14 @@ namespace StayFocused
     {
         private NotifyIcon notifyIcon;
         private ContextMenuStrip contextMenuStrip;
+        SFDbContext _sfDbContext;
+
         public Action Shutdown;
+
+        public SystemMenu(SFDbContext sfDbContext)
+        {
+            _sfDbContext = sfDbContext;
+        }
 
         private Icon GetIcon()
         {
@@ -68,6 +75,7 @@ namespace StayFocused
         private void ShowDailySummary(object sender, EventArgs e)
         {
             var dailySummary = new DailySummary();
+            dailySummary.AddRecords(_sfDbContext);
             dailySummary.Show();
         }
 
