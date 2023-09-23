@@ -9,6 +9,7 @@ namespace StayFocused.Activities
         public string WindowTitle { get; set; }
 
         //public abstract string GetDescription(IntPtr hWnd);
+        public TimeSpan Timespan => TimeSpan.FromSeconds(ActivityScore * Constants.MonitoringIntervalMilliseconds);
 
         public virtual void IncrementActivityScore()
         {

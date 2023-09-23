@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StayFocused.GUI;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -49,6 +50,7 @@ namespace StayFocused
         {
             var menuStrip = new ContextMenuStrip();
             AddExitAction(menuStrip);
+            AddDailySummaryAction(menuStrip);
             notifyIcon.ContextMenuStrip = menuStrip;
             return menuStrip;
         }
@@ -65,7 +67,8 @@ namespace StayFocused
 
         private void ShowDailySummary(object sender, EventArgs e)
         {
-            
+            var dailySummary = new DailySummary();
+            dailySummary.Show();
         }
 
         private void OnNotifyIconClick(object sender, EventArgs e)

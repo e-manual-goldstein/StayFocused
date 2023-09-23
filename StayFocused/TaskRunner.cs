@@ -11,7 +11,7 @@ namespace StayFocused
 
         Action TaskAction { get; set; }
 
-        public TaskRunner(Action taskAction, int interval = 5000)
+        public TaskRunner(Action taskAction, int interval)
         {
             // Set the default interval to 5000 milliseconds (5 seconds)
             _interval = interval;

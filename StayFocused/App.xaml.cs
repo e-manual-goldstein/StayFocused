@@ -42,7 +42,7 @@ namespace StayFocused
             services.AddSingleton((options) => new ConfigManager());
             services.AddSingleton<ILogManager, DefaultLogger>();
             services.AddSingleton<ConfigManager>();
-            services.AddSingleton<IActivityMonitor>(new ActivityMonitor(5000, 60000));
+            services.AddSingleton<IActivityMonitor>(new ActivityMonitor(Constants.MonitoringIntervalMilliseconds, Constants.PersistenceIntervalMilliseconds));
             services.AddSingleton<PluginService>();
             
             return services;
