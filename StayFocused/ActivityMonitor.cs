@@ -14,22 +14,23 @@ namespace StayFocused
     {
         //static BasicActivityHandler _basicActivityHandler = new BasicActivityHandler();
         //static InActivity _inactive = new InActivity();
-
+        SFDbContext _sFDbContext;
         TaskRunner _activityTask;
-        TaskRunner _persistenceTask;
+        //TaskRunner _persistenceTask;
         bool _stationLocked;
         bool _archiveExisting = true;
 
-        private static ConcurrentDictionary<string, Activity> _activities;
+        private static ConcurrentDictionary<string, Activity> _activities = new();
         // Dictionary to store activities and their scores
         private Dictionary<string, IActivityHandler> _handlers = new Dictionary<string, IActivityHandler>();
 
         string SaveFilePath => $"{DateTime.Now:yyyyMMdd}.json";
 
-        public ActivityMonitor(int activityInterval, int persistenceInterval) 
+        public ActivityMonitor(SFDbContext sFDbContext) 
         {
-            _activityTask = new TaskRunner(StayFocused, activityInterval);
-            _persistenceTask = new TaskRunner(SaveActivitiesToFile, persistenceInterval);
+            _sFDbContext = sFDbContext;
+            _activityTask = new TaskRunner(StayFocused, Constants.MonitoringIntervalMilliseconds);
+            //_persistenceTask = new TaskRunner(SaveActivitiesToFile, Constants.PersistenceIntervalMilliseconds);
         }
 
         public void AddCustomHandler(string processName, IActivityHandler activityHandler)
@@ -55,10 +56,10 @@ namespace StayFocused
 
         public void Begin()
         {
-            InitialiseActivities(SaveFilePath);
+            //InitialiseActivities(SaveFilePath);
             ActivateSessionSwitchHandler();
 
-            _persistenceTask.Begin();
+            //_persistenceTask.Begin();
             _activityTask.Begin();
         }
 
@@ -93,13 +94,17 @@ namespace StayFocused
         {
             
             var activity = GetActivity();
+
+            _sFDbContext.Add(activity.CreateNewEntry());
+            _sFDbContext.SaveChanges();
+
             activity.IncrementActivityScore();
 
             Console.WriteLine($"{activity.ProcessName} - Score: {activity.ActivityScore}");
             
         }
 
-        private IActivity GetActivity()
+        private Activity GetActivity()
         {
             var hWnd = WinApi.GetForegroundWindow(); 
             //if (_stationLocked)

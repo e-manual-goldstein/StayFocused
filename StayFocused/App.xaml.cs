@@ -1,18 +1,17 @@
-﻿using Microsoft.Win32;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Drawing;
-using System.Runtime.Versioning;
-
-using System.Windows;
-using System.Windows.Forms;
-using Application = System.Windows.Application;
-using StayFocused.Plugins;
-using StayFocused.Api;
-using System.IO;
-using System.Windows.Forms.Design;
-using StayFocused.Activities;
+﻿using Microsoft.Extensions.DependencyInjection;
 using StayFocused.Activities.Handlers;
+using StayFocused.Api;
+using StayFocused.Plugins;
+using System;
+using System.IO;
+using System.Runtime.Versioning;
+using System.Windows;
+using System.Windows.Forms.Design;
+using Application = System.Windows.Application;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace StayFocused
 {
@@ -42,9 +41,21 @@ namespace StayFocused
             services.AddSingleton((options) => new ConfigManager());
             services.AddSingleton<ILogManager, DefaultLogger>();
             services.AddSingleton<ConfigManager>();
-            services.AddSingleton<IActivityMonitor>(new ActivityMonitor(Constants.MonitoringIntervalMilliseconds, Constants.PersistenceIntervalMilliseconds));
+            services.AddSingleton<IActivityMonitor, ActivityMonitor>();
             services.AddSingleton<PluginService>();
-            
+            ConfigureDataAccess(services);
+            return services;
+        }
+
+        private ServiceCollection ConfigureDataAccess(ServiceCollection services)
+        {
+            services.AddDbContext<SFDbContext>(options =>
+            {
+                var folder = Environment.SpecialFolder.ApplicationData;
+                var path = Environment.GetFolderPath(folder);
+                Directory.CreateDirectory(Path.Join(path, "\\StayFocused\\"));
+                options.UseSqlite($"Data Source={Path.Join(path, "\\StayFocused\\sf.db")}");
+            });
             return services;
         }
 
@@ -88,7 +99,7 @@ namespace StayFocused
             _logManager = _serviceProvider.GetService<ILogManager>();
             _serviceProvider.GetService<ConfigManager>().SettingNotFound += HandleMissingConfig;
 
-
+            _serviceProvider.GetService<SFDbContext>().Database.EnsureCreated();
             StartActivityMonitor();
             
 
