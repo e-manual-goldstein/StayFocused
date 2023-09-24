@@ -85,6 +85,22 @@ namespace StayFocused
             var newOrder = sortDescending ? Activities.OrderByDescending(sortFunc) : Activities.OrderBy(sortFunc);
             ReloadActivities(newOrder.ToArray());
         }
+
+        internal void SelectAllVisible()
+        {
+            foreach (var activity in Activities)
+            {
+                activity.IsSelected = true;
+            };
+        }
+
+        internal void UnselectAllVisible()
+        {
+            foreach (var activity in Activities)
+            {
+                activity.IsSelected = false;
+            };
+        }
     }
 
 }

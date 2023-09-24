@@ -1,17 +1,9 @@
-﻿using StayFocused.Activities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+
 
 namespace StayFocused.GUI
 {
@@ -20,16 +12,12 @@ namespace StayFocused.GUI
     /// </summary>
     public partial class DailySummary : Window
     {
-        private ContextMenu processNameMenu;
-        private ContextMenu timespanColumnContextMenu;
         private Grid grid;
-        private GridViewColumn[] gridViewColumns;
 
         public DailySummary()
         {
             InitializeComponent();
             SetUpViewComponents();
-            //SetupColumnContextMenus();
             DataContext = _activityViewModel = new ActivityViewModel();
         }
 
@@ -78,7 +66,6 @@ namespace StayFocused.GUI
         private void AddSelectAllMenuItem(GridViewColumn column)
         {
             var contextMenu = InitialiseContextMenuColumn(column);
-
             var selectAllMenuItem = new MenuItem { Header = "Select All" };
             selectAllMenuItem.Click += SelectAllMenuItem_Click;
             contextMenu.Items.Add(selectAllMenuItem);
@@ -87,7 +74,6 @@ namespace StayFocused.GUI
         private void AddUnselectAllMenuItem(GridViewColumn column)
         {
             var contextMenu = InitialiseContextMenuColumn(column);
-
             var unselectAllMenuItem = new MenuItem { Header = "Unselect All" };
             unselectAllMenuItem.Click += UnselectAllMenuItem_Click;
             contextMenu.Items.Add(unselectAllMenuItem);
@@ -104,7 +90,6 @@ namespace StayFocused.GUI
 
         private void AddSortMenuItems(GridViewColumn column)
         {
-
             var contextMenu = InitialiseContextMenuColumn(column);
             
             var sortAscendingMenuItem = new MenuItem { Header = "Sort Ascending" };
@@ -115,7 +100,6 @@ namespace StayFocused.GUI
             sortdescendingMenuItem.Click += SortDescendingMenuItem_Click;
             contextMenu.Items.Add(sortdescendingMenuItem);
         }
-
 
         private ContextMenu InitialiseContextMenuColumn(GridViewColumn column)
         {
@@ -145,41 +129,12 @@ namespace StayFocused.GUI
 
         private void SelectAllMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            _activityViewModel.SelectAllVisible();
         }
 
         private void UnselectAllMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
-        }
-
-        private void SortAscendingMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem menuItem)
-            {
-                if (menuItem.Parent is ContextMenu contextMenu)
-                {
-                    if (contextMenu.PlacementTarget is GridViewColumnHeader gridViewColumnHeader)
-                    {
-
-                        _activityViewModel.UpdateSorting(gridViewColumnHeader.Column, false);
-                    }
-                }
-            }
-        }
-        private void SortDescendingMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem menuItem)
-            {
-                if (menuItem.Parent is ContextMenu contextMenu)
-                {
-                    if (contextMenu.PlacementTarget is GridViewColumnHeader gridViewColumnHeader)
-                    {
-
-                        _activityViewModel.UpdateSorting(gridViewColumnHeader.Column, true);
-                    }
-                }
-            }
+            _activityViewModel.UnselectAllVisible();
         }
 
         private void FilterMenuItem_Click(object sender, RoutedEventArgs e)
@@ -187,5 +142,42 @@ namespace StayFocused.GUI
             throw new NotImplementedException();
         }
 
+        #region Sorting
+        private void UpdateSorting(object sender, bool sortDescending)
+        {
+            if (TryGetColumnForMenuItem(sender, out var column))
+            {
+                _activityViewModel.UpdateSorting(column, sortDescending);            
+            }
+        }
+
+        private void SortAscendingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSorting(sender, false);
+        }
+
+        private void SortDescendingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSorting(sender, true);
+        } 
+
+        #endregion
+
+        private bool TryGetColumnForMenuItem(object sender, out GridViewColumn gridViewColumn)
+        {
+            gridViewColumn = null;
+            if (sender is MenuItem menuItem)
+            {
+                if (menuItem.Parent is ContextMenu contextMenu)
+                {
+                    if (contextMenu.PlacementTarget is GridViewColumnHeader gridViewColumnHeader)
+                    {
+                        gridViewColumn = gridViewColumnHeader.Column;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     }
 }
