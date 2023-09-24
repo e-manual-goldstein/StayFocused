@@ -56,15 +56,15 @@ namespace StayFocused.GUI
             switch (column.Header)
             {
                 case "Process Name":
-                    AddOrderByMenuItem(column);
-                    AddFilterByMenuItem(column);
+                    AddSortMenuItems(column);
+                    AddFilterMenuItem(column);
                     break;
                 case "Window Title":
-                    AddOrderByMenuItem(column);
-                    AddFilterByMenuItem(column);
+                    AddSortMenuItems(column);
+                    AddFilterMenuItem(column);
                     break;
                 case "Total Duration":
-                    AddOrderByMenuItem(column);
+                    AddSortMenuItems(column);
                     break;
                 case "Is Selected":
                     AddSelectAllMenuItem(column);
@@ -77,58 +77,53 @@ namespace StayFocused.GUI
 
         private void AddSelectAllMenuItem(GridViewColumn column)
         {
-            throw new NotImplementedException();
+            var contextMenu = InitialiseContextMenuColumn(column);
+
+            var selectAllMenuItem = new MenuItem { Header = "Select All" };
+            selectAllMenuItem.Click += SelectAllMenuItem_Click;
+            contextMenu.Items.Add(selectAllMenuItem);
         }
 
         private void AddUnselectAllMenuItem(GridViewColumn column)
         {
-            throw new NotImplementedException();
+            var contextMenu = InitialiseContextMenuColumn(column);
+
+            var unselectAllMenuItem = new MenuItem { Header = "Unselect All" };
+            unselectAllMenuItem.Click += UnselectAllMenuItem_Click;
+            contextMenu.Items.Add(unselectAllMenuItem);
         }
 
-        private void AddOrderByMenuItem(GridViewColumn column)
+        private void AddFilterMenuItem(GridViewColumn column)
         {
-            if (!(column.Header is GridViewColumnHeader columnHeader))
-            {
-                column.Header = new GridViewColumnHeader() { Content = column.Header };
-            }
-            var contextMenu = (column.Header as GridViewColumnHeader).ContextMenu ??= new ContextMenu();
-            var filterByMenuItem = new MenuItem { Header = "Filter By" };
-            filterByMenuItem.Click += FilterByMenuItem_Click;
+            var contextMenu = InitialiseContextMenuColumn(column);
+
+            var filterByMenuItem = new MenuItem { Header = "Filter" };
+            filterByMenuItem.Click += FilterMenuItem_Click;
             contextMenu.Items.Add(filterByMenuItem);
         }
 
-        private void AddFilterByMenuItem(GridViewColumn column)
+        private void AddSortMenuItems(GridViewColumn column)
         {
-            if (!(column.Header is GridViewColumnHeader columnHeader))
+
+            var contextMenu = InitialiseContextMenuColumn(column);
+            
+            var sortAscendingMenuItem = new MenuItem { Header = "Sort Ascending" };
+            sortAscendingMenuItem.Click += SortAscendingMenuItem_Click;
+            contextMenu.Items.Add(sortAscendingMenuItem);
+
+            var sortdescendingMenuItem = new MenuItem { Header = "Sort Descending" };
+            sortdescendingMenuItem.Click += SortDescendingMenuItem_Click;
+            contextMenu.Items.Add(sortdescendingMenuItem);
+        }
+
+
+        private ContextMenu InitialiseContextMenuColumn(GridViewColumn column)
+        {
+            if (!(column.Header is GridViewColumnHeader))
             {
                 column.Header = new GridViewColumnHeader() { Content = column.Header };
             }
-            var contextMenu = (column.Header as GridViewColumnHeader).ContextMenu ??= new ContextMenu();
-            var orderByMenuItem = new MenuItem { Header = "Order By" };
-            orderByMenuItem.Click += OrderByMenuItem_Click;
-            contextMenu.Items.Add(orderByMenuItem);
-        }
-
-        private void SetupColumnContextMenus()
-        {
-            processNameMenu = new ContextMenu();
-            timespanColumnContextMenu = new ContextMenu();
-
-            var filterByMenuItem = new MenuItem { Header = "Filter By" };
-            filterByMenuItem.Click += FilterByMenuItem_Click;
-
-            var orderByMenuItem = new MenuItem { Header = "Order By" };
-            orderByMenuItem.Click += OrderByMenuItem_Click;
-
-            processNameMenu.Items.Add(filterByMenuItem);
-            processNameMenu.Items.Add(orderByMenuItem);
-
-            //timespanColumnContextMenu.Items.Add(orderByMenuItem);
-            
-
-            //// Assign the context menus to their respective columns
-            //NameColumnHeader.ContextMenu = nameColumnContextMenu;
-            //TimespanColumnHeader.ContextMenu = timespanColumnContextMenu;
+            return (column.Header as GridViewColumnHeader).ContextMenu ??= new ContextMenu();
         }
 
         private ActivityViewModel _activityViewModel;
@@ -137,22 +132,57 @@ namespace StayFocused.GUI
         internal void AddRecords(SFDbContext sfDbContext)
         {
             _activityRecords = sfDbContext.ActivityRecords.Where(d => d.TimeStamp.Date == DateTime.Today.Date).ToList();
-            foreach (var summary in _activityRecords.GroupBy(a => new { a.ProcessName, a.WindowTitle }))                
-            {
-                _activityViewModel.Activities.Add(new ActivitySummary() 
-                { 
-                    ProcessName = summary.Key.ProcessName, 
-                    WindowTitle = summary.Key.WindowTitle,
-                    TotalDuration = TimeSpan.FromMilliseconds(summary.Count() * Constants.MonitoringIntervalMilliseconds)
-                });
-            }           
+            DisplayActivitySummaries();
         }
-        private void OrderByMenuItem_Click(object sender, RoutedEventArgs e)
+
+        private void DisplayActivitySummaries()
+        {
+            foreach (var summary in _activityRecords.GroupBy(a => new { a.ProcessName, a.WindowTitle }))
+            {
+                _activityViewModel.AddNewActivitySummary(summary.Key.ProcessName, summary.Key.WindowTitle, summary.Count());                
+            }
+        }
+
+        private void SelectAllMenuItem_Click(object sender, RoutedEventArgs e)
         {
             throw new NotImplementedException();
         }
 
-        private void FilterByMenuItem_Click(object sender, RoutedEventArgs e)
+        private void UnselectAllMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void SortAscendingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                if (menuItem.Parent is ContextMenu contextMenu)
+                {
+                    if (contextMenu.PlacementTarget is GridViewColumnHeader gridViewColumnHeader)
+                    {
+
+                        _activityViewModel.UpdateSorting(gridViewColumnHeader.Column, false);
+                    }
+                }
+            }
+        }
+        private void SortDescendingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                if (menuItem.Parent is ContextMenu contextMenu)
+                {
+                    if (contextMenu.PlacementTarget is GridViewColumnHeader gridViewColumnHeader)
+                    {
+
+                        _activityViewModel.UpdateSorting(gridViewColumnHeader.Column, true);
+                    }
+                }
+            }
+        }
+
+        private void FilterMenuItem_Click(object sender, RoutedEventArgs e)
         {
             throw new NotImplementedException();
         }

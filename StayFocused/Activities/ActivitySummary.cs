@@ -12,5 +12,7 @@ namespace StayFocused
         public string WindowTitle { get; set; }
         
         public TimeSpan TotalDuration { get; set; }
+
+        public bool IsSelected { get; set; }
     }
 }
