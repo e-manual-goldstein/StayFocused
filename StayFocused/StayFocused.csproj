@@ -26,6 +26,13 @@
 
 
   <ItemGroup>
+    <Compile Update="GUI\AddFilterDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+
+  <ItemGroup>
     <None Update="icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
