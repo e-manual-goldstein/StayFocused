@@ -18,13 +18,10 @@ namespace StayFocused
         TaskRunner _activityTask;
         //TaskRunner _persistenceTask;
         bool _stationLocked;
-        bool _archiveExisting = true;
 
         private static ConcurrentDictionary<string, Activity> _activities = new();
         // Dictionary to store activities and their scores
         private Dictionary<string, IActivityHandler> _handlers = new Dictionary<string, IActivityHandler>();
-
-        string SaveFilePath => $"{DateTime.Now:yyyyMMdd}.json";
 
         public ActivityMonitor(SFDbContext sFDbContext) 
         {
@@ -68,26 +65,6 @@ namespace StayFocused
             SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;            
         }
 
-        private void InitialiseActivities(string saveFilePath)
-        {
-            if (File.Exists(saveFilePath))
-            {
-                var text = File.ReadAllText(saveFilePath);
-                try
-                {
-                    Console.WriteLine("Loading activities from file...");
-                    _activities = JsonConvert.DeserializeObject<ConcurrentDictionary<string, Activity>>(text);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Unable to load existing activities {ex.Message}");
-                    Console.WriteLine("Archiving existing file");
-                    ArchiveActivities(saveFilePath);
-                }
-            }
-            _activities ??= new();            
-        }
-
         #region Stay Focused
 
         private void StayFocused()
@@ -107,10 +84,6 @@ namespace StayFocused
         private Activity GetActivity()
         {
             var hWnd = WinApi.GetForegroundWindow(); 
-            //if (_stationLocked)
-            //{
-            //    return _activities.GetOrAdd("Inactive", NewActivity);
-            //}
             var activeProcess = GetWindowProcessName(hWnd);
             var windowTitle = WinApi.GetWindowTitle(hWnd);
             return _activities.GetOrAdd(ActivityName(activeProcess, windowTitle), (key) => new Activity()
@@ -143,33 +116,6 @@ namespace StayFocused
 
 
         #endregion
-
-        private void SaveActivitiesToFile()
-        {
-            string saveFilePath = SaveFilePath;
-            string json = JsonConvert.SerializeObject(_activities, Formatting.Indented);
-            if (_archiveExisting)
-            {
-                ArchiveActivities(saveFilePath);
-                _archiveExisting = false;
-            }
-            // Write JSON to the file
-            File.WriteAllTextAsync(saveFilePath, json);
-        }
-
-        private void ArchiveActivities(string saveFilePath)
-        {
-            if (File.Exists(saveFilePath))
-            {
-                var archiveDirectory = Path.Combine(Path.GetDirectoryName(saveFilePath), "archive");
-                if (!Directory.Exists(archiveDirectory))
-                {
-                    Directory.CreateDirectory(archiveDirectory);
-                }
-                Console.WriteLine($"Archiving {saveFilePath}");
-                File.Copy(saveFilePath, Path.Combine(archiveDirectory, Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) + Path.GetFileName(saveFilePath)));
-            }
-        }
 
         internal void Lock()
         {
