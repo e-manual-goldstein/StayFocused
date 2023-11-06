@@ -39,6 +39,8 @@ namespace StayFocused.GUI
             }
         }
 
+        IDictionary<MenuItem, GridViewColumn> _columnBindings = new Dictionary<MenuItem, GridViewColumn>();
+        
         private void SetContextMenuForColumn(GridViewColumn column)
         {
             switch (column.Header)
@@ -69,6 +71,7 @@ namespace StayFocused.GUI
             var selectAllMenuItem = new MenuItem { Header = "Select All" };
             selectAllMenuItem.Click += SelectAllMenuItem_Click;
             contextMenu.Items.Add(selectAllMenuItem);
+            _columnBindings[selectAllMenuItem] = column;
         }
 
         private void AddUnselectAllMenuItem(GridViewColumn column)
@@ -77,6 +80,7 @@ namespace StayFocused.GUI
             var unselectAllMenuItem = new MenuItem { Header = "Unselect All" };
             unselectAllMenuItem.Click += UnselectAllMenuItem_Click;
             contextMenu.Items.Add(unselectAllMenuItem);
+            _columnBindings[unselectAllMenuItem] = column;
         }
 
         private void AddFilterMenuItem(GridViewColumn column)
@@ -86,6 +90,7 @@ namespace StayFocused.GUI
             var filterByMenuItem = new MenuItem { Header = "Filter" };
             filterByMenuItem.Click += FilterMenuItem_Click;
             contextMenu.Items.Add(filterByMenuItem);
+            _columnBindings[filterByMenuItem] = column;
         }
 
         private void AddSortMenuItems(GridViewColumn column)
@@ -95,10 +100,12 @@ namespace StayFocused.GUI
             var sortAscendingMenuItem = new MenuItem { Header = "Sort Ascending" };
             sortAscendingMenuItem.Click += SortAscendingMenuItem_Click;
             contextMenu.Items.Add(sortAscendingMenuItem);
+            _columnBindings[sortAscendingMenuItem] = column;
 
             var sortdescendingMenuItem = new MenuItem { Header = "Sort Descending" };
             sortdescendingMenuItem.Click += SortDescendingMenuItem_Click;
             contextMenu.Items.Add(sortdescendingMenuItem);
+            _columnBindings[sortdescendingMenuItem] = column;
         }
 
         private ContextMenu InitialiseContextMenuColumn(GridViewColumn column)
@@ -139,7 +146,11 @@ namespace StayFocused.GUI
 
         private void FilterMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            var filterDialog = new AddFilterDialog(_columnBindings[sender as MenuItem], typeof(string));
+            if (filterDialog.ShowDialog() ?? false)
+            {
+                _activityViewModel.UpdateFilter(filterDialog.ColumnName, filterDialog.GetFilter());
+            }
         }
 
         #region Sorting

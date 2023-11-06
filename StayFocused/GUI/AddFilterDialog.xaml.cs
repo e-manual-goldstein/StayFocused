@@ -19,19 +19,68 @@ namespace StayFocused
     /// </summary>
     public partial class AddFilterDialog : Window
     {
-        public AddFilterDialog(Type fieldType)
+        public string ColumnName { get; }
+        FilterType _filterType;
+        string _filterText;
+        Func<string, bool> _filterFunc = _ => true;
+
+        public AddFilterDialog(GridViewColumn gridViewColumn, Type type)
         {
-            
+            InitializeComponent();
+            ColumnName = (gridViewColumn.Header as GridViewColumnHeader).Content.ToString();
         }
 
-        private void OnOkClick(object sender, RoutedEventArgs e)
+        private void OKButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;
+            SetFilterType();
+            _filterText = FilterTextBox.Text;
         }
 
-        private void OnCancelClick(object sender, RoutedEventArgs e)
+        private void SetFilterType()
+        {
+            if (StartsWithRadioButton.IsChecked == true)
+            {
+                _filterType = FilterType.StartsWith;
+                _filterFunc = x => x.StartsWith(_filterText, StringComparison.CurrentCultureIgnoreCase);
+            }
+            else if (ContainsRadioButton.IsChecked == true)
+            {
+                _filterType = FilterType.Contains;
+                _filterFunc = x => x.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase);
+            }
+            else if (EndsWithRadioButton.IsChecked == true)
+            {
+                _filterType = FilterType.EndsWith;
+                _filterFunc = x => x.EndsWith(_filterText, StringComparison.CurrentCultureIgnoreCase);
+            }
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+        }
+
+        internal Func<ActivitySummary, bool> GetFilter()
+        {
+            switch (ColumnName)
+            {
+                case "Process Name":
+                    return x => _filterFunc(x.ProcessName);
+                case "Window Title":
+                    return x => _filterFunc(x.WindowTitle);
+                default:
+                    break;
+            }
+            return _ => true;
+        }
+
+
+        enum FilterType
+        {
+            StartsWith,
+            Contains,
+            EndsWith
         }
     }
 }
