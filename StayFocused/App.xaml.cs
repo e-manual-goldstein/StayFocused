@@ -115,7 +115,7 @@ namespace StayFocused
         {
             var activityMonitor = _serviceProvider.GetService<IActivityMonitor>();
             activityMonitor.AddCustomHandler("firefox", new FirefoxActivityHandler());
-            activityMonitor.AddCustomHandler("OUTLOOK", new OutlookHandler());
+            //activityMonitor.AddCustomHandler("OUTLOOK", new OutlookHandler());
             activityMonitor.Begin();
         }
 

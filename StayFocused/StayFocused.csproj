@@ -1,15 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Activities\Handlers\OutlookHandler.cs" />
+  </ItemGroup>
+
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Office.Interop.Outlook" Version="15.0.4797.1004" />
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
@@ -19,10 +22,13 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.7" />
  </ItemGroup>
-
-
   <ItemGroup>
     <ProjectReference Include="..\StayFocused.Api\StayFocused.Api.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="office">
+      <HintPath>Office.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 

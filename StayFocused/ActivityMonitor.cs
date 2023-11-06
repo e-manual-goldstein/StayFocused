@@ -6,7 +6,8 @@ using System.IO;
 using StayFocused.Api;
 using StayFocused.Activities;
 using System.Collections.Generic;
-using StayFocused.Activities.Handlers;
+
+
 
 namespace StayFocused
 {
@@ -86,10 +87,6 @@ namespace StayFocused
             var hWnd = WinApi.GetForegroundWindow(); 
             var activeProcess = GetWindowProcessName(hWnd);
             var windowTitle = WinApi.GetWindowTitle(hWnd);
-            if (_handlers.ContainsKey(activeProcess))
-            {
-
-            }
             return _activities.GetOrAdd(ActivityName(activeProcess, windowTitle), (key) => new Activity()
             {
                 ProcessName = activeProcess,
