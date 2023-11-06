@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using StayFocused.Activities;
 
 namespace StayFocused
 {
@@ -114,7 +115,7 @@ namespace StayFocused
         {
             var activityMonitor = _serviceProvider.GetService<IActivityMonitor>();
             activityMonitor.AddCustomHandler("firefox", new FirefoxActivityHandler());
-            //activityMonitor.AddCustomHandler("msedge", new EdgeActivityHandler());
+            activityMonitor.AddCustomHandler("OUTLOOK", new OutlookHandler());
             activityMonitor.Begin();
         }
 

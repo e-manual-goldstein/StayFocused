@@ -86,6 +86,10 @@ namespace StayFocused
             var hWnd = WinApi.GetForegroundWindow(); 
             var activeProcess = GetWindowProcessName(hWnd);
             var windowTitle = WinApi.GetWindowTitle(hWnd);
+            if (_handlers.ContainsKey(activeProcess))
+            {
+
+            }
             return _activities.GetOrAdd(ActivityName(activeProcess, windowTitle), (key) => new Activity()
             {
                 ProcessName = activeProcess,

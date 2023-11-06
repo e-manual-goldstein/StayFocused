@@ -42,11 +42,11 @@ namespace StayFocused
 
         public void ApplyFilters()
         {
-            var visibleActivities = Activities.Where(a => !IsFiltered(a)).ToArray();
+            var visibleActivities = _allActivitySummaries.Where(a => !IsFiltered(a));
             ReloadActivities(visibleActivities);
         }
 
-        private void ReloadActivities(ActivitySummary[] activities)
+        private void ReloadActivities(IEnumerable<ActivitySummary> activities)
         {
             Activities.Clear();
             foreach (var a in activities)
