@@ -7,13 +7,18 @@ namespace DailyWorkLog;
 public class TrayHost : IDisposable
 {
     private readonly WorkPromptCoordinator _coordinator;
+    private readonly WorkItemTestCoordinator _testCoordinator;
     private readonly DailyPromptScheduler _scheduler;
     private NotifyIcon? _notifyIcon;
     private bool _disposed;
 
-    public TrayHost(WorkPromptCoordinator coordinator, DailyPromptScheduler scheduler)
+    public TrayHost(
+        WorkPromptCoordinator coordinator,
+        WorkItemTestCoordinator testCoordinator,
+        DailyPromptScheduler scheduler)
     {
         _coordinator = coordinator;
+        _testCoordinator = testCoordinator;
         _scheduler = scheduler;
     }
 
@@ -27,12 +32,18 @@ public class TrayHost : IDisposable
         };
 
         var menu = new ContextMenuStrip();
+        menu.Items.Add("Test: get work item by ID", null, OnTestGetWorkItem);
         menu.Items.Add("Log today's work", null, OnLogTodayWork);
         menu.Items.Add("Exit", null, OnExit);
         _notifyIcon.ContextMenuStrip = menu;
         _notifyIcon.DoubleClick += (_, _) => _coordinator.ShowManualPrompt();
 
         _scheduler.Start();
+    }
+
+    private void OnTestGetWorkItem(object? sender, EventArgs e)
+    {
+        _testCoordinator.GetWorkItem();
     }
 
     private void OnLogTodayWork(object? sender, EventArgs e)

@@ -11,4 +11,9 @@ public class AzureDevOpsOptions
 
     public string Project { get; set; } = "";
     public string ApiVersion { get; set; } = "7.0";
+
+    /// <summary>
+    /// Optional ID for tray "Test ADO connection" without prompting.
+    /// </summary>
+    public int TestWorkItemId { get; set; } = 0;
 }

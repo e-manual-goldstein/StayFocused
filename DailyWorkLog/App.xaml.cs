@@ -53,7 +53,7 @@ public partial class App : System.Windows.Application
         services.Configure<DailyPromptOptions>(configuration.GetSection(DailyPromptOptions.SectionName));
         services.Configure<WorkItemOptions>(configuration.GetSection(WorkItemOptions.SectionName));
 
-        services.AddHttpClient<IAzureDevOpsWorkItemService, AzureDevOpsWorkItemService>()
+        services.AddHttpClient<IWorkItemService, WorkItemService>()
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {
                 UseDefaultCredentials = true,
@@ -61,6 +61,7 @@ public partial class App : System.Windows.Application
             });
         services.AddSingleton<IPromptStateStore, PromptStateStore>();
         services.AddSingleton<WorkPromptCoordinator>();
+        services.AddSingleton<WorkItemTestCoordinator>();
         services.AddSingleton<DailyPromptScheduler>();
         services.AddSingleton<TrayHost>();
 

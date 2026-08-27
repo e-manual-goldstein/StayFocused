@@ -12,9 +12,14 @@ Not wired into the legacy `StayFocused` activity monitor — this project is sel
    - `WorkItem:MandatoryFields` — dictionary of ADO field reference names and values
    - `DailyPrompt:PromptTime` — local time to show the prompt (e.g. `17:00`)
 
-2. **Authentication** uses **NTLM** (Windows integrated auth). The app runs as the logged-in Windows user — no PAT required. Ensure that user has permission to create work items in the project.
+2. **Authentication** uses **NTLM** (Windows integrated auth). The app runs as the logged-in Windows user — no PAT required. Ensure that user has permission to read/create work items in the project.
 
-3. Build and run:
+3. **Test connection** before creating tasks:
+   - Set `AzureDevOps:TestWorkItemId` to a known work item ID, or leave `0` to be prompted
+   - Tray → **Test: get work item by ID**
+   - Success shows id, type, title, and state
+
+4. Build and run:
 
 ```bash
 dotnet run --project DailyWorkLog

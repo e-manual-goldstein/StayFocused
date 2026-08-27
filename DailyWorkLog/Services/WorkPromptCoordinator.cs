@@ -5,12 +5,12 @@ namespace DailyWorkLog.Services;
 
 public class WorkPromptCoordinator
 {
-    private readonly IAzureDevOpsWorkItemService _workItemService;
+    private readonly IWorkItemService _workItemService;
     private readonly IPromptStateStore _promptStateStore;
     private bool _dialogOpen;
 
     public WorkPromptCoordinator(
-        IAzureDevOpsWorkItemService workItemService,
+        IWorkItemService workItemService,
         IPromptStateStore promptStateStore)
     {
         _workItemService = workItemService;
