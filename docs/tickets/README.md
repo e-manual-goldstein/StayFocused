@@ -24,7 +24,7 @@ Agents: read `agent-methodology/instructions.md` and work from `docs/backlog.md`
 
 | Code | File | Scope | Status |
 | ---- | ---- | ----- | ------ |
-| **WRK** | [WRK-daily-work-log.md](WRK-daily-work-log.md) | **Primary** — daily prompt + Azure DevOps Task | Active (0%) |
+| **WRK** | [WRK-daily-work-log.md](WRK-daily-work-log.md) | **Primary** — daily prompt + Azure DevOps Task | **Done** (`DailyWorkLog/`) |
 | FND | [FND-foundation.md](FND-foundation.md) | Tray app, DI, config (partially reused) | In progress (75%) |
 | MON | [MON-monitoring.md](MON-monitoring.md) | Activity polling | Shelved |
 | HND | [HND-handlers.md](HND-handlers.md) | Per-process handlers | Shelved |
