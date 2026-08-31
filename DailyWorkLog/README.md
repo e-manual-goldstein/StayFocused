@@ -48,6 +48,14 @@ State file: `%AppData%\DailyWorkLog\prompt-state.json`
 
 User input is sent to the field named in `WorkItem:UserTextField` (default `System.Title`), merged with `MandatoryFields`.
 
+On **create**, these fields are also set automatically (unless already present in `MandatoryFields`):
+
+| Field | ADO reference | Default |
+|-------|---------------|---------|
+| Start date | `Microsoft.VSTS.Scheduling.StartDate` | Today |
+| Assigned to | `System.AssignedTo` | Current user (`@me` via connectionData API) |
+| Completed work | `Microsoft.VSTS.Scheduling.CompletedWork` | 7.5 hours |
+
 ## API URL
 
 Work items are created at:

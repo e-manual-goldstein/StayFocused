@@ -82,6 +82,18 @@ User-entered text is sent as **`System.Title`** by default. Optional `appsetting
 
 `MandatoryFields` is a `Dictionary<string, string>` merged into the create payload. User text is added as an additional field (not duplicated if already in dictionary).
 
+### Default create fields
+
+Applied on every **create** unless overridden in `MandatoryFields`:
+
+| Field | Reference name | Value |
+|-------|----------------|-------|
+| Start date | `Microsoft.VSTS.Scheduling.StartDate` | Today's date (`yyyy-MM-dd`) |
+| Assigned to | `System.AssignedTo` | Current user via `connectionData` API (TFS `@me`) |
+| Completed work | `Microsoft.VSTS.Scheduling.CompletedWork` | `7.5` (hours) |
+
+Set `"System.AssignedTo": "@me"` explicitly in config if you want to document intent; any missing `AssignedTo` is resolved the same way.
+
 ### Azure DevOps API
 
 - Endpoint: `POST {ServerUrl}/{project}/_apis/wit/workitems/${WorkItemType}?api-version={version}`
