@@ -55,6 +55,12 @@ public partial class App : System.Windows.Application
                 UseDefaultCredentials = true,
                 PreAuthenticate = true
             });
+        services.AddHttpClient<CurrentUserResolver>()
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                UseDefaultCredentials = true,
+                PreAuthenticate = true
+            });
         services.AddSingleton<IPromptStateStore, PromptStateStore>();
         services.AddSingleton<WorkPromptCoordinator>();
         services.AddSingleton<WorkItemTestCoordinator>();

@@ -12,16 +12,18 @@ public class WorkItemService : IWorkItemService
     private readonly HttpClient _httpClient;
     private readonly AzureDevOpsOptions _adoOptions;
     private readonly WorkItemOptions _workItemOptions;
-    private string? _cachedAssignedTo;
+    private readonly CurrentUserResolver _currentUserResolver;
 
     public WorkItemService(
         HttpClient httpClient,
         IOptions<AzureDevOpsOptions> adoOptions,
-        IOptions<WorkItemOptions> workItemOptions)
+        IOptions<WorkItemOptions> workItemOptions,
+        CurrentUserResolver currentUserResolver)
     {
         _httpClient = httpClient;
         _adoOptions = adoOptions.Value;
         _workItemOptions = workItemOptions.Value;
+        _currentUserResolver = currentUserResolver;
     }
 
     public async Task<WorkItemSummary> GetWorkItemAsync(
@@ -98,51 +100,17 @@ public class WorkItemService : IWorkItemService
 
         if (!fields.ContainsKey(WorkItemFields.AssignedTo))
         {
-            fields[WorkItemFields.AssignedTo] = await GetCurrentUserAssignedToAsync(cancellationToken);
+            fields[WorkItemFields.AssignedTo] =
+                await _currentUserResolver.GetAssignedToValueAsync(cancellationToken);
         }
         else if (IsCurrentUserToken(fields[WorkItemFields.AssignedTo]))
         {
-            fields[WorkItemFields.AssignedTo] = await GetCurrentUserAssignedToAsync(cancellationToken);
+            fields[WorkItemFields.AssignedTo] =
+                await _currentUserResolver.GetAssignedToValueAsync(cancellationToken);
         }
 
         fields[_workItemOptions.UserTextField] = userText.Trim();
         return fields;
-    }
-
-    private async Task<string> GetCurrentUserAssignedToAsync(CancellationToken cancellationToken)
-    {
-        if (!string.IsNullOrEmpty(_cachedAssignedTo))
-            return _cachedAssignedTo;
-
-        var url =
-            $"{BuildCollectionApiBase()}/_apis/connectionData?connectOptions=1&api-version={_adoOptions.ApiVersion}";
-
-        using var response = await _httpClient.GetAsync(url, cancellationToken);
-        var body = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException(
-                $"Could not resolve current user for System.AssignedTo ({response.StatusCode}): {body}");
-
-        using var document = JsonDocument.Parse(body);
-        if (!document.RootElement.TryGetProperty("authenticatedUser", out var user))
-            throw new InvalidOperationException("Azure DevOps connectionData did not include authenticatedUser.");
-
-        var displayName = user.TryGetProperty("providerDisplayName", out var displayElement)
-            ? displayElement.GetString()
-            : null;
-        var uniqueName = user.TryGetProperty("uniqueName", out var uniqueElement)
-            ? uniqueElement.GetString()
-            : null;
-
-        if (string.IsNullOrWhiteSpace(uniqueName))
-            throw new InvalidOperationException("Azure DevOps authenticatedUser did not include uniqueName.");
-
-        _cachedAssignedTo = string.IsNullOrWhiteSpace(displayName)
-            ? uniqueName
-            : $"{displayName} <{uniqueName}>";
-
-        return _cachedAssignedTo;
     }
 
     private static bool IsCurrentUserToken(object value)
@@ -151,15 +119,10 @@ public class WorkItemService : IWorkItemService
             && string.Equals(text.Trim(), WorkItemFields.CurrentUserToken, StringComparison.OrdinalIgnoreCase);
     }
 
-    private string BuildCollectionApiBase()
-    {
-        return _adoOptions.ServerUrl.TrimEnd('/');
-    }
-
     private string BuildProjectApiBase()
     {
         var project = Uri.EscapeDataString(_adoOptions.Project);
-        return $"{BuildCollectionApiBase()}/{project}";
+        return $"{_adoOptions.ServerUrl.TrimEnd('/')}/{project}";
     }
 
     private string BuildWorkItemUrl(int workItemId)

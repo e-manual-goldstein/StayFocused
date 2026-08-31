@@ -89,7 +89,7 @@ Applied on every **create** unless overridden in `MandatoryFields`:
 | Field | Reference name | Value |
 |-------|----------------|-------|
 | Start date | `Microsoft.VSTS.Scheduling.StartDate` | Today's date (`yyyy-MM-dd`) |
-| Assigned to | `System.AssignedTo` | Current user via `connectionData` API (TFS `@me`) |
+| Assigned to | `System.AssignedTo` | Current user — `connectionData` → `properties.Account.$value` |
 | Completed work | `Microsoft.VSTS.Scheduling.CompletedWork` | `7.5` (hours) |
 
 Set `"System.AssignedTo": "@me"` explicitly in config if you want to document intent; any missing `AssignedTo` is resolved the same way.
