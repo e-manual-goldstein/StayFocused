@@ -53,7 +53,7 @@ On **create**, these fields are also set automatically (unless already present i
 | Field | ADO reference | Default |
 |-------|---------------|---------|
 | Start date | `Microsoft.VSTS.Scheduling.StartDate` | Today |
-| Assigned to | `System.AssignedTo` | `authenticatedUser.properties.Account.$value` from `connectionData` |
+| Assigned to | `System.AssignedTo` | `properties.Account.$value` from `connectionData`, qualified as `Display Name <DOMAIN\\account>` |
 | Completed work | `Microsoft.VSTS.Scheduling.CompletedWork` | 7.5 hours |
 
 ## API URL

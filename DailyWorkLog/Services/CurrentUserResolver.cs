@@ -44,33 +44,105 @@ public class CurrentUserResolver
             throw new InvalidOperationException("Azure DevOps connectionData did not include authenticatedUser.");
         }
 
-        var account = GetAccountProperty(authenticatedUser);
+        var account = GetIdentityProperty(authenticatedUser, "Account");
         if (string.IsNullOrWhiteSpace(account))
         {
             throw new InvalidOperationException(
                 "Azure DevOps authenticatedUser did not include properties.Account.$value.");
         }
 
-        _cachedAssignedTo = account;
+        var displayName = GetString(authenticatedUser, "providerDisplayName")
+            ?? GetString(authenticatedUser, "customDisplayName");
+
+        var identityName = account;
+        if (TryGetIdentityId(authenticatedUser, out var identityId))
+        {
+            identityName = await ResolveIdentityNameAsync(identityId, account, cancellationToken);
+        }
+        else if (!account.Contains('\\', StringComparison.Ordinal))
+        {
+            var domain = GetIdentityProperty(authenticatedUser, "Domain");
+            if (!string.IsNullOrWhiteSpace(domain))
+                identityName = $"{domain}\\{account}";
+        }
+
+        _cachedAssignedTo = FormatAssignedTo(displayName, identityName);
         return _cachedAssignedTo;
     }
 
-    private static string? GetAccountProperty(JsonElement identity)
+    private async Task<string> ResolveIdentityNameAsync(
+        Guid identityId,
+        string account,
+        CancellationToken cancellationToken)
+    {
+        var identityUrl =
+            $"{BuildCollectionApiBase()}/_apis/identities/{identityId:D}?api-version={_adoOptions.ApiVersion}";
+
+        using var identityResponse = await _httpClient.GetAsync(identityUrl, cancellationToken);
+        var identityBody = await identityResponse.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!identityResponse.IsSuccessStatusCode)
+            return account;
+
+        using var identityDocument = JsonDocument.Parse(identityBody);
+        var identity = identityDocument.RootElement;
+
+        var uniqueName = GetString(identity, "uniqueName");
+        if (!string.IsNullOrWhiteSpace(uniqueName))
+            return uniqueName;
+
+        var identityAccount = GetIdentityProperty(identity, "Account") ?? account;
+        var domain = GetIdentityProperty(identity, "Domain");
+        if (!string.IsNullOrWhiteSpace(domain) && !identityAccount.Contains('\\', StringComparison.Ordinal))
+            return $"{domain}\\{identityAccount}";
+
+        return identityAccount;
+    }
+
+    private static string FormatAssignedTo(string? displayName, string identityName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+            return identityName;
+
+        return $"{displayName} <{identityName}>";
+    }
+
+    private static bool TryGetIdentityId(JsonElement identity, out Guid identityId)
+    {
+        identityId = default;
+        if (!identity.TryGetProperty("id", out var idElement))
+            return false;
+
+        return idElement.ValueKind == JsonValueKind.String
+            && Guid.TryParse(idElement.GetString(), out identityId);
+    }
+
+    private static string? GetString(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var value))
+            return null;
+
+        return value.ValueKind == JsonValueKind.String
+            ? value.GetString()
+            : null;
+    }
+
+    private static string? GetIdentityProperty(JsonElement identity, string propertyName)
     {
         if (!identity.TryGetProperty("properties", out var properties))
             return null;
 
-        if (!properties.TryGetProperty("Account", out var accountProperty))
+        if (!properties.TryGetProperty(propertyName, out var property))
             return null;
 
-        if (accountProperty.TryGetProperty("$value", out var valueElement)
+        if (property.TryGetProperty("$value", out var valueElement)
             && valueElement.ValueKind == JsonValueKind.String)
         {
             return valueElement.GetString();
         }
 
-        return accountProperty.ValueKind == JsonValueKind.String
-            ? accountProperty.GetString()
+        return property.ValueKind == JsonValueKind.String
+            ? property.GetString()
             : null;
     }
 
