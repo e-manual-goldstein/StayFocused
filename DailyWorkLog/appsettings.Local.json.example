@@ -1,0 +1,16 @@
+{
+  "AzureDevOps": {
+    "ServerUrl": "https://your-server/tfs/DefaultCollection",
+    "Project": "YourProject",
+    "TestWorkItemId": 12345
+  },
+  "DailyPrompt": {
+    "PromptTime": "17:00"
+  },
+  "WorkItem": {
+    "MandatoryFields": {
+      "System.AreaPath": "YourProject\\YourArea",
+      "System.IterationPath": "YourProject\\Current Sprint"
+    }
+  }
+}

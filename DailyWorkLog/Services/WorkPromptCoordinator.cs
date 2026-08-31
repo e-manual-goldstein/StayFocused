@@ -27,7 +27,7 @@ public class WorkPromptCoordinator
         RunPrompt(markPromptedToday: true);
     }
 
-    private async void RunPrompt(bool markPromptedToday)
+    private void RunPrompt(bool markPromptedToday)
     {
         if (_dialogOpen)
             return;
@@ -45,16 +45,12 @@ public class WorkPromptCoordinator
 
                 try
                 {
-                    var text = dialog.WorkText;
-                    _ = Task.Run(async () =>
-                    {
-                        var workItemId = await _workItemService.CreateTaskAsync(text);
-                        System.Windows.MessageBox.Show(
-                            $"Created work item #{workItemId}.",
-                            "Daily Work Log",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
-                    });
+                    var workItemId = _workItemService.CreateTaskAsync(dialog.WorkText).GetAwaiter().GetResult();
+                    System.Windows.MessageBox.Show(
+                        $"Created work item #{workItemId}.",
+                        "Daily Work Log",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
                     break;
                 }
                 catch (Exception ex)

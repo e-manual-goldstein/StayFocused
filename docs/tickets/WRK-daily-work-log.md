@@ -26,6 +26,9 @@
 | [WRK-003](#wrk-003) | Done | Daily prompt dialog — text field, OK, Cancel |
 | [WRK-004](#wrk-004) | Done | Wire OK to create Task with user text |
 | [WRK-005](#wrk-005) | Done | Daily scheduler — trigger prompt once per calendar day |
+| [WRK-006](#wrk-006) | Done | NTLM authentication and ServerUrl configuration |
+| [WRK-007](#wrk-007) | Done | GetWorkItemAsync and tray ADO connection test |
+| [WRK-008](#wrk-008) | Shelved | Run at Windows startup (registry + tray toggle) |
 
 ---
 
@@ -84,6 +87,7 @@ User-entered text is sent as **`System.Title`** by default. Optional `appsetting
 - Endpoint: `POST {ServerUrl}/{project}/_apis/wit/workitems/${WorkItemType}?api-version={version}`
 - Content-Type: `application/json-patch+json`
 - Auth: **NTLM** — `HttpClientHandler.UseDefaultCredentials = true` (Windows integrated auth for the logged-in user; no PAT)
+- GET (smoke test): `GET {ServerUrl}/{project}/_apis/wit/workitems/{id}?api-version={version}` → `WorkItemService.GetWorkItemAsync`
 - Body: JSON Patch array — `{ "op": "add", "path": "/fields/{fieldRef}", "value": "{value}" }` per field
 
 ### Once-per-day logic
@@ -121,8 +125,8 @@ User-entered text is sent as **`System.Title`** by default. Optional `appsetting
 | **ID** | WRK-002 |
 | **Title** | Azure DevOps Work Item API client (create Task) |
 | **Status** | Done |
-| **Description** | `AzureDevOpsWorkItemService` — JSON Patch POST; NTLM (`UseDefaultCredentials`); URL from `ServerUrl` + `Project`. |
-| **Test / demo** | With valid PAT and project in appsettings, call client with test title → Task appears in Azure DevOps portal. Invalid PAT → structured error logged/shown. |
+| **Description** | `WorkItemService` — JSON Patch POST; NTLM; URL from `ServerUrl` + `Project`. |
+| **Test / demo** | With valid NTLM access and project in appsettings, create with test title → Task appears in ADO. |
 | **Depends on** | WRK-001 |
 
 ### WRK-003
@@ -143,7 +147,7 @@ User-entered text is sent as **`System.Title`** by default. Optional `appsetting
 | **ID** | WRK-004 |
 | **Title** | Wire OK to create Task with user text |
 | **Status** | Done |
-| **Description** | `WorkPromptCoordinator` — OK validates text, calls API, retries on error; Cancel closes with no API call. |
+| **Description** | `WorkPromptCoordinator` — OK awaits `CreateTaskAsync`, shows errors inline, retries on failure; Cancel closes with no API call. |
 | **Test / demo** | OK with *"Fixed login bug"* → new Task in ADO with that title + mandatory fields from appsettings. |
 | **Depends on** | WRK-002, WRK-003 |
 
@@ -157,3 +161,36 @@ User-entered text is sent as **`System.Title`** by default. Optional `appsetting
 | **Description** | `DailyPromptScheduler` + `PromptStateStore` (`%AppData%\DailyWorkLog\prompt-state.json`). Once per day after `PromptTime`; manual tray prompt does not affect scheduler state. |
 | **Test / demo** | Set `PromptTime` to 1 minute from now → dialog appears once → Cancel → no second prompt same day. Next day (or manually reset `LastPromptDate`) → dialog appears again. |
 | **Depends on** | WRK-003, WRK-004 |
+
+### WRK-006
+
+| Field | Detail |
+|-------|--------|
+| **ID** | WRK-006 |
+| **Title** | NTLM authentication and ServerUrl configuration |
+| **Status** | Done |
+| **Description** | Replaced PAT/Basic auth with `UseDefaultCredentials` on `HttpClientHandler`. Config uses `ServerUrl` (collection base) + `Project` instead of `Organization` + PAT. |
+| **Test / demo** | App starts without PAT; ADO calls authenticate as logged-in Windows user. |
+| **Depends on** | WRK-002 |
+
+### WRK-007
+
+| Field | Detail |
+|-------|--------|
+| **ID** | WRK-007 |
+| **Title** | GetWorkItemAsync and tray ADO connection test |
+| **Status** | Done |
+| **Description** | `WorkItemService.GetWorkItemAsync` returns `WorkItemSummary`. Tray **Test: get work item by ID**; optional `TestWorkItemId` in appsettings. |
+| **Test / demo** | Tray → test get → known ID returns title/type/state; bad URL/auth shows API error body. |
+| **Depends on** | WRK-006 |
+
+### WRK-008
+
+| Field | Detail |
+|-------|--------|
+| **ID** | WRK-008 |
+| **Title** | Run at Windows startup (registry + tray toggle) |
+| **Status** | Shelved |
+| **Description** | `StartupRegistration` writes HKCU `Run` key for `DailyWorkLog`. Tray checkbox **Run at Windows startup**. Shelved — implementation reverted; not wanted yet. |
+| **Test / demo** | — |
+| **Depends on** | WRK-005 |

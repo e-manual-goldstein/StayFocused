@@ -16,20 +16,20 @@ public static class ConfigurationValidator
 
         if (string.IsNullOrWhiteSpace(ado.ServerUrl))
             throw new InvalidOperationException(
-                "AzureDevOps:ServerUrl is required in appsettings.json (e.g. https://tfs.mycompany.com/tfs/DefaultCollection).");
+                "AzureDevOps:ServerUrl is required (appsettings.json or appsettings.Local.json).");
 
         if (!Uri.TryCreate(ado.ServerUrl, UriKind.Absolute, out _))
             throw new InvalidOperationException(
                 $"AzureDevOps:ServerUrl is not a valid URL: {ado.ServerUrl}");
 
         if (string.IsNullOrWhiteSpace(ado.Project))
-            throw new InvalidOperationException("AzureDevOps:Project is required in appsettings.json.");
+            throw new InvalidOperationException("AzureDevOps:Project is required (appsettings.json or appsettings.Local.json).");
 
         if (string.IsNullOrWhiteSpace(workItem.WorkItemType))
-            throw new InvalidOperationException("WorkItem:WorkItemType is required in appsettings.json.");
+            throw new InvalidOperationException("WorkItem:WorkItemType is required (appsettings.json or appsettings.Local.json).");
 
         if (string.IsNullOrWhiteSpace(workItem.UserTextField))
-            throw new InvalidOperationException("WorkItem:UserTextField is required in appsettings.json.");
+            throw new InvalidOperationException("WorkItem:UserTextField is required (appsettings.json or appsettings.Local.json).");
 
         if (!TimeSpan.TryParse(prompt.PromptTime, out _))
             throw new InvalidOperationException(

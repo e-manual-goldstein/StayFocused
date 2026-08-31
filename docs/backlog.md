@@ -1,6 +1,6 @@
 # Unfinished Ticket Backlog
 
-Ordered list of **open** tickets across all epics. When a ticket is completed, add it to **Recently completed** (table below) and remove it from **Active**. That section shows **only the latest** completed ticket — replace the row when a new one lands. If you complete **multiple tickets in one batch** (same session/commit), list every ticket from that batch in the table instead.
+Ordered list of **open** tickets across all epics. When a ticket is completed, add it to **Recently completed** (table below) and remove it from **Active**.
 
 **Source epics:** see [tickets/](tickets/README.md) for full acceptance criteria.
 
@@ -10,17 +10,13 @@ Ordered list of **open** tickets across all epics. When a ticket is completed, a
 
 | TicketId | Epic | Description |
 | -------- | ---- | ----------- |
-| ~~WRK-005~~ | [WRK](tickets/WRK-daily-work-log.md) | Daily scheduler — trigger prompt once per calendar day |
-| ~~WRK-004~~ | [WRK](tickets/WRK-daily-work-log.md) | Wire OK to create Task with user text |
-| ~~WRK-003~~ | [WRK](tickets/WRK-daily-work-log.md) | Daily prompt dialog — text field, OK, Cancel |
-| ~~WRK-002~~ | [WRK](tickets/WRK-daily-work-log.md) | Azure DevOps Work Item API client (create Task) |
-| ~~WRK-001~~ | [WRK](tickets/WRK-daily-work-log.md) | appsettings configuration for Azure DevOps and daily prompt |
+| ~~WRK-007~~ | [WRK](tickets/WRK-daily-work-log.md) | GetWorkItemAsync and tray ADO connection test |
 
 ## Active (recommended order)
 
 | TicketId | Epic | Description |
 | -------- | ---- | ----------- |
-| — | — | WRK epic complete — configure `DailyWorkLog/appsettings.json` and run |
+| — | — | WRK-001 – WRK-007 complete. WRK-008 shelved. Configure `DailyWorkLog/appsettings.json`, test GET, then use **Log today's work** for create. |
 
 ## Epic progress
 
@@ -35,14 +31,11 @@ In-progress epics only. **100%** completed epics are listed at the [end of this 
 | [Plugins (PLG)](tickets/PLG-plugins.md) | Plugin loading (deprioritised) | 1 | 1 | 2 | 🟩🟩🟩🟩🟩🟨⬜⬜⬜⬜ 50% |
 | [API Contracts (API)](tickets/API-contracts.md) | Namespace cleanup (deprioritised) | 0 | 2 | 2 | 🟨🟨⬜⬜⬜⬜⬜⬜⬜⬜ 0% |
 
-*Progress bar is always 10 squares: 🟩 completed, 🟨 shelved, ⬜ open.*
-
 ## Shelved
-
-Not in the active queue. Legacy `StayFocused` scope — see individual epic files.
 
 | TicketId | Epic | Description | Notes |
 | -------- | ---- | ----------- | ----- |
+| WRK-008 | [WRK](tickets/WRK-daily-work-log.md) | Run at Windows startup (registry + tray toggle) | Shelved — not wanted yet; code reverted |
 | MON-002 | [MON](tickets/MON-monitoring.md) | Pause activity recording when session locked | Not primary goal |
 | MON-003 | [MON](tickets/MON-monitoring.md) | File-based JSON persistence task | Not primary goal |
 | HND-001–004 | [HND](tickets/HND-handlers.md) | Activity handlers | Not primary goal |
@@ -68,4 +61,4 @@ None active.
 
 | Epic | Description | Completed | Project |
 | ---- | ----------- | --------- | ------- |
-| [Daily Work Log (WRK)](tickets/WRK-daily-work-log.md) | Daily prompt → Azure DevOps Task | WRK-001 – WRK-005 | `DailyWorkLog/` |
+| [Daily Work Log (WRK)](tickets/WRK-daily-work-log.md) | Daily prompt → Azure DevOps Task | WRK-001 – WRK-007 | `DailyWorkLog/` |

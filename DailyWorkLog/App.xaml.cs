@@ -40,11 +40,7 @@ public partial class App : System.Windows.Application
 
     private static ServiceProvider BuildServices()
     {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddEnvironmentVariables()
-            .Build();
+        var configuration = ConfigurationSetup.BuildConfiguration();
 
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(configuration);

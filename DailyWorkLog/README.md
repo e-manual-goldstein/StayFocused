@@ -6,20 +6,26 @@ Not wired into the legacy `StayFocused` activity monitor — this project is sel
 
 ## Setup
 
-1. Edit `appsettings.json`:
+1. Edit committed defaults in `appsettings.json`, then override private values locally.
+
+2. **Local settings (optional):** copy `appsettings.Local.json.example` to `appsettings.Local.json` in the **same folder as the running app** (e.g. `bin/Debug/net6.0-windows/` when using `dotnet run`). This file is optional; when present it is loaded after `appsettings.json` and **overrides** matching keys. Keep it out of git (e.g. `.git/info/exclude`).
+
+   Only include keys you want to override — you do not need to duplicate the full file:
+
+3. Common settings:
    - `AzureDevOps:ServerUrl` — collection base URL (e.g. `https://tfs.mycompany.com/tfs/DefaultCollection`)
    - `AzureDevOps:Project` — project name
    - `WorkItem:MandatoryFields` — dictionary of ADO field reference names and values
    - `DailyPrompt:PromptTime` — local time to show the prompt (e.g. `17:00`)
 
-2. **Authentication** uses **NTLM** (Windows integrated auth). The app runs as the logged-in Windows user — no PAT required. Ensure that user has permission to read/create work items in the project.
+4. **Authentication** uses **NTLM** (Windows integrated auth). The app runs as the logged-in Windows user — no PAT required. Ensure that user has permission to read/create work items in the project.
 
-3. **Test connection** before creating tasks:
+5. **Test connection** before creating tasks:
    - Set `AzureDevOps:TestWorkItemId` to a known work item ID, or leave `0` to be prompted
    - Tray → **Test: get work item by ID**
    - Success shows id, type, title, and state
 
-4. Build and run:
+6. Build and run:
 
 ```bash
 dotnet run --project DailyWorkLog
