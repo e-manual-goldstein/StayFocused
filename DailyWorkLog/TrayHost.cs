@@ -36,19 +36,24 @@ public class TrayHost : IDisposable
         menu.Items.Add("Log today's work", null, OnLogTodayWork);
         menu.Items.Add("Exit", null, OnExit);
         _notifyIcon.ContextMenuStrip = menu;
-        _notifyIcon.DoubleClick += (_, _) => _coordinator.ShowManualPrompt();
+        _notifyIcon.DoubleClick += OnNotifyIconDoubleClick;
 
         _scheduler.Start();
     }
 
-    private void OnTestGetWorkItem(object? sender, EventArgs e)
+    private async void OnTestGetWorkItem(object? sender, EventArgs e)
     {
-        _testCoordinator.GetWorkItem();
+        await _testCoordinator.GetWorkItemAsync();
     }
 
-    private void OnLogTodayWork(object? sender, EventArgs e)
+    private async void OnLogTodayWork(object? sender, EventArgs e)
     {
-        _coordinator.ShowManualPrompt();
+        await _coordinator.ShowManualPromptAsync();
+    }
+
+    private async void OnNotifyIconDoubleClick(object? sender, EventArgs e)
+    {
+        await _coordinator.ShowManualPromptAsync();
     }
 
     private void OnExit(object? sender, EventArgs e)

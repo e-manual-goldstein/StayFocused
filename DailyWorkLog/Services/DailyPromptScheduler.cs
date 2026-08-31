@@ -42,7 +42,8 @@ public class DailyPromptScheduler : IDisposable
         if (!IsPromptDue())
             return;
 
-        System.Windows.Application.Current.Dispatcher.Invoke(_coordinator.ShowScheduledPrompt);
+        _ = System.Windows.Application.Current.Dispatcher.InvokeAsync(
+            () => _coordinator.ShowScheduledPromptAsync());
     }
 
     private bool IsPromptDue()

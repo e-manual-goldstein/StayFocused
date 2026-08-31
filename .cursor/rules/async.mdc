@@ -1,0 +1,22 @@
+---
+description: Async conventions for StayFocused / DailyWorkLog
+globs: **/*.{cs}
+alwaysApply: true
+---
+
+# Async conventions
+
+Never block on async work.
+
+**Do not use:**
+- `.GetAwaiter().GetResult()`
+- `.Result`
+- `.Wait()`
+- `Task.Run(...)` solely to call async code from sync code
+
+**Prefer:**
+- `async`/`await` end-to-end
+- `async void` only for UI event handlers (tray menu, buttons) where the signature cannot be `async Task`
+- `Dispatcher.InvokeAsync` / `await` when marshaling to the WPF UI thread
+
+When calling async services from a timer or background thread, use `Dispatcher.InvokeAsync(() => coordinator.MethodAsync())` and discard the returned `DispatcherOperation` with `_ =` — do not block waiting for it on the timer thread.

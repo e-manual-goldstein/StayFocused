@@ -17,7 +17,7 @@ public class WorkItemTestCoordinator
         _adoOptions = adoOptions.Value;
     }
 
-    public void GetWorkItem()
+    public async Task GetWorkItemAsync()
     {
         int workItemId;
 
@@ -36,7 +36,7 @@ public class WorkItemTestCoordinator
 
         try
         {
-            var item = _workItemService.GetWorkItemAsync(workItemId).GetAwaiter().GetResult();
+            var item = await _workItemService.GetWorkItemAsync(workItemId);
             System.Windows.MessageBox.Show(
                 $"#{item.Id} [{item.WorkItemType}]\n{item.Title}\nState: {item.State}",
                 "Work item found",

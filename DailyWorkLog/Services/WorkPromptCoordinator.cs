@@ -17,17 +17,17 @@ public class WorkPromptCoordinator
         _promptStateStore = promptStateStore;
     }
 
-    public void ShowManualPrompt()
+    public Task ShowManualPromptAsync()
     {
-        RunPrompt(markPromptedToday: false);
+        return RunPromptAsync(markPromptedToday: false);
     }
 
-    public void ShowScheduledPrompt()
+    public Task ShowScheduledPromptAsync()
     {
-        RunPrompt(markPromptedToday: true);
+        return RunPromptAsync(markPromptedToday: true);
     }
 
-    private void RunPrompt(bool markPromptedToday)
+    private async Task RunPromptAsync(bool markPromptedToday)
     {
         if (_dialogOpen)
             return;
@@ -45,7 +45,7 @@ public class WorkPromptCoordinator
 
                 try
                 {
-                    var workItemId = _workItemService.CreateTaskAsync(dialog.WorkText).GetAwaiter().GetResult();
+                    var workItemId = await _workItemService.CreateTaskAsync(dialog.WorkText);
                     System.Windows.MessageBox.Show(
                         $"Created work item #{workItemId}.",
                         "Daily Work Log",
