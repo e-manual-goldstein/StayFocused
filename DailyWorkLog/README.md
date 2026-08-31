@@ -52,9 +52,11 @@ On **create**, these fields are also set automatically (unless already present i
 
 | Field | ADO reference | Default |
 |-------|---------------|---------|
-| Start date | `Microsoft.VSTS.Scheduling.StartDate` | Today |
+| Start date | `Microsoft.VSTS.Scheduling.StartDate` | Today (`yyyy-MM-dd`, date only) |
 | Assigned to | `System.AssignedTo` | `properties.Account.$value` from `connectionData`, qualified as `Display Name <DOMAIN\\account>` |
 | Completed work | `Microsoft.VSTS.Scheduling.CompletedWork` | 7.5 hours |
+
+Set a default tag via `WorkItem:MandatoryFields:System.Tags` (semicolon-separated for multiple tags, e.g. `"DailyWorkLog; TeamA"`).
 
 ## API URL
 

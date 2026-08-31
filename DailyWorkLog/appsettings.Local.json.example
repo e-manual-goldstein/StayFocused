@@ -10,7 +10,8 @@
   "WorkItem": {
     "MandatoryFields": {
       "System.AreaPath": "YourProject\\YourArea",
-      "System.IterationPath": "YourProject\\Current Sprint"
+      "System.IterationPath": "YourProject\\Current Sprint",
+      "System.Tags": "DailyWorkLog"
     }
   }
 }

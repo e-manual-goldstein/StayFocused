@@ -90,7 +90,12 @@ public class WorkItemService : IWorkItemService
 
         if (!fields.ContainsKey(WorkItemFields.StartDate))
         {
-            fields[WorkItemFields.StartDate] = DateTime.Today.ToString("yyyy-MM-dd");
+            fields[WorkItemFields.StartDate] = WorkItemFieldValues.TodayStartDate();
+        }
+        else
+        {
+            fields[WorkItemFields.StartDate] = WorkItemFieldValues.NormalizeStartDate(
+                fields[WorkItemFields.StartDate]);
         }
 
         if (!fields.ContainsKey(WorkItemFields.CompletedWork))
@@ -107,6 +112,12 @@ public class WorkItemService : IWorkItemService
         {
             fields[WorkItemFields.AssignedTo] =
                 await _currentUserResolver.GetAssignedToValueAsync(cancellationToken);
+        }
+
+        if (fields.ContainsKey(WorkItemFields.Tags))
+        {
+            fields[WorkItemFields.Tags] = WorkItemFieldValues.NormalizeTags(
+                fields[WorkItemFields.Tags]);
         }
 
         fields[_workItemOptions.UserTextField] = userText.Trim();
