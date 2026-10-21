@@ -1,70 +1,84 @@
-using System.Windows;
 using DailyWorkLog.GUI;
+using DailyWorkLog.Options;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DailyWorkLog.Services;
 
 public class WorkPromptCoordinator
 {
     private readonly IWorkItemService _workItemService;
+    private readonly WorkItemOptions _workItemOptions;
     private readonly IPromptStateStore _promptStateStore;
+    private readonly ILogger<WorkPromptCoordinator> _logger;
+    private readonly ILoggerFactory _loggerFactory;
     private bool _dialogOpen;
 
     public WorkPromptCoordinator(
         IWorkItemService workItemService,
-        IPromptStateStore promptStateStore)
+        IOptions<WorkItemOptions> workItemOptions,
+        IPromptStateStore promptStateStore,
+        ILogger<WorkPromptCoordinator> logger,
+        ILoggerFactory loggerFactory)
     {
         _workItemService = workItemService;
+        _workItemOptions = workItemOptions.Value;
         _promptStateStore = promptStateStore;
+        _logger = logger;
+        _loggerFactory = loggerFactory;
     }
 
     public Task ShowManualPromptAsync()
     {
-        return RunPromptAsync(markPromptedToday: false);
+        RunPrompt(markPromptedToday: false, source: "manual");
+        return Task.CompletedTask;
     }
 
     public Task ShowScheduledPromptAsync()
     {
-        return RunPromptAsync(markPromptedToday: true);
+        RunPrompt(markPromptedToday: true, source: "scheduled");
+        return Task.CompletedTask;
     }
 
-    private async Task RunPromptAsync(bool markPromptedToday)
+    private void RunPrompt(bool markPromptedToday, string source)
     {
         if (_dialogOpen)
+        {
+            _logger.LogWarning(
+                "Skipping {Source} prompt because a dialog is already open",
+                source);
             return;
+        }
 
         _dialogOpen = true;
         try
         {
-            while (true)
-            {
-                var dialog = new DailyWorkPromptDialog();
-                var accepted = dialog.ShowDialog() == true;
+            _logger.LogInformation(
+                "Opening work prompt dialog (source={Source}, markPromptedToday={MarkPromptedToday})",
+                source,
+                markPromptedToday);
 
-                if (!accepted)
-                    break;
+            var defaultCompletedWorkHours = WorkItemFieldValues.ResolveDefaultCompletedWorkHours(
+                _workItemOptions.MandatoryFields);
+            var dialog = new DailyWorkPromptDialog(
+                _workItemService,
+                defaultCompletedWorkHours,
+                _loggerFactory.CreateLogger<DailyWorkPromptDialog>());
+            dialog.ShowDialog();
 
-                try
-                {
-                    var workItemId = await _workItemService.CreateTaskAsync(dialog.WorkText);
-                    System.Windows.MessageBox.Show(
-                        $"Created work item #{workItemId}.",
-                        "Daily Work Log",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    System.Windows.MessageBox.Show(
-                        ex.Message,
-                        "Could not create work item",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                }
-            }
+            _logger.LogInformation(
+                "Work prompt dialog closed (DialogResult={DialogResult}, SuccessfulSaves={SuccessfulSaves})",
+                dialog.DialogResult,
+                dialog.SuccessfulSaveCount);
 
             if (markPromptedToday)
+            {
                 _promptStateStore.SetLastPromptDate(DateTime.Today);
+                _logger.LogInformation(
+                    "Marked daily prompt complete for {Date} (work items saved this session: {SuccessfulSaves})",
+                    DateTime.Today.ToString("yyyy-MM-dd"),
+                    dialog.SuccessfulSaveCount);
+            }
         }
         finally
         {

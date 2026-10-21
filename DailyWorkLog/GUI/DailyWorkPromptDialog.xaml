@@ -16,9 +16,39 @@
                  TextWrapping="Wrap"
                  VerticalScrollBarVisibility="Auto"
                  Margin="0,0,0,12" />
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Completed work (hours):"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,0" />
+            <TextBox x:Name="CompletedWorkTextBox"
+                     Grid.Column="1"
+                     Width="80"
+                     HorizontalAlignment="Left" />
+        </Grid>
+        <TextBlock x:Name="StatusTextBlock"
+                   Margin="0,0,0,12"
+                   TextWrapping="Wrap"
+                   Visibility="Collapsed" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="OK" Width="80" Margin="0,0,8,0" IsDefault="True" Click="OnOkClick" />
-            <Button Content="Cancel" Width="80" IsCancel="True" Click="OnCancelClick" />
+            <Button x:Name="OkButton"
+                    Content="OK"
+                    Width="80"
+                    Margin="0,0,8,0"
+                    IsDefault="True"
+                    Click="OnOkClick" />
+            <Button x:Name="SaveAndAddAnotherButton"
+                    Content="Save and Add Another"
+                    Margin="0,0,8,0"
+                    Click="OnSaveAndAddAnotherClick" />
+            <Button x:Name="CancelButton"
+                    Content="Cancel"
+                    Width="80"
+                    IsCancel="True"
+                    Click="OnCancelClick" />
         </StackPanel>
     </StackPanel>
 </Window>

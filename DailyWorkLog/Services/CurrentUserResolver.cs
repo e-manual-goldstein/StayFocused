@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using DailyWorkLog.Options;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace DailyWorkLog.Services;
@@ -9,29 +10,40 @@ public class CurrentUserResolver
 {
     private readonly HttpClient _httpClient;
     private readonly AzureDevOpsOptions _adoOptions;
+    private readonly ILogger<CurrentUserResolver> _logger;
     private string? _cachedAssignedTo;
 
     public CurrentUserResolver(
         HttpClient httpClient,
-        IOptions<AzureDevOpsOptions> adoOptions)
+        IOptions<AzureDevOpsOptions> adoOptions,
+        ILogger<CurrentUserResolver> logger)
     {
         _httpClient = httpClient;
         _adoOptions = adoOptions.Value;
+        _logger = logger;
     }
 
     public async Task<string> GetAssignedToValueAsync(CancellationToken cancellationToken = default)
     {
         if (!string.IsNullOrEmpty(_cachedAssignedTo))
+        {
+            _logger.LogDebug("Using cached AssignedTo value (length {Length})", _cachedAssignedTo.Length);
             return _cachedAssignedTo;
+        }
 
         var connectionDataUrl =
             $"{BuildCollectionApiBase()}/_apis/connectionData?connectOptions=1&api-version={_adoOptions.ApiVersion}";
 
+        _logger.LogDebug("Resolving current user via {Url}", connectionDataUrl);
         using var connectionResponse = await _httpClient.GetAsync(connectionDataUrl, cancellationToken);
         var connectionBody = await connectionResponse.Content.ReadAsStringAsync(cancellationToken);
 
         if (!connectionResponse.IsSuccessStatusCode)
         {
+            _logger.LogError(
+                "connectionData failed with {StatusCode}. Body: {Body}",
+                connectionResponse.StatusCode,
+                LogFormatting.Truncate(connectionBody));
             throw new InvalidOperationException(
                 $"Could not resolve current user for System.AssignedTo ({connectionResponse.StatusCode}): {connectionBody}");
         }
@@ -67,6 +79,10 @@ public class CurrentUserResolver
         }
 
         _cachedAssignedTo = FormatAssignedTo(displayName, identityName);
+        _logger.LogInformation(
+            "Resolved AssignedTo (display length {DisplayLength}, identity length {IdentityLength})",
+            displayName?.Length ?? 0,
+            identityName.Length);
         return _cachedAssignedTo;
     }
 

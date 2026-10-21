@@ -31,6 +31,14 @@ Not wired into the legacy `StayFocused` activity monitor — this project is sel
 dotnet run --project DailyWorkLog
 ```
 
+## Logging
+
+Serilog writes verbose logs to rolling daily files under:
+
+`%AppData%\DailyWorkLog\logs\` (e.g. `dailyworklog-20261021.log`)
+
+Default minimum level is **Verbose** (`Serilog:MinimumLevel:Default` in `appsettings.json`). Use these logs to trace the daily scheduler, dialog save attempts, and Azure DevOps API requests/responses when work items are not created.
+
 ## Tray menu
 
 - **Log today's work** — open the prompt anytime (does not affect the once-per-day scheduler)
@@ -47,6 +55,8 @@ State file: `%AppData%\DailyWorkLog\prompt-state.json`
 ## User text field
 
 User input is sent to the field named in `WorkItem:UserTextField` (default `System.Title`), merged with `MandatoryFields`.
+
+The prompt dialog also includes a **Completed work (hours)** field. It defaults to `7.5`, or to `WorkItem:MandatoryFields:Microsoft.VSTS.Scheduling.CompletedWork` when that value is set in config. Use **Save and Add Another** to create multiple tasks in one session; success and errors appear in the dialog instead of separate message boxes.
 
 On **create**, these fields are also set automatically (unless already present in `MandatoryFields`):
 

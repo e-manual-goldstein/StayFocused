@@ -4,6 +4,30 @@ namespace DailyWorkLog.Services;
 
 internal static class WorkItemFieldValues
 {
+    public static double ResolveDefaultCompletedWorkHours(
+        IReadOnlyDictionary<string, string> mandatoryFields)
+    {
+        if (mandatoryFields.TryGetValue(WorkItemFields.CompletedWork, out var text)
+            && TryParseCompletedWork(text, out var hours))
+        {
+            return hours;
+        }
+
+        return WorkItemFields.DefaultCompletedWorkHours;
+    }
+
+    public static bool TryParseCompletedWork(string? text, out double hours)
+    {
+        hours = 0;
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+
+        var trimmed = text.Trim();
+        return (double.TryParse(trimmed, NumberStyles.Number, CultureInfo.InvariantCulture, out hours)
+                || double.TryParse(trimmed, NumberStyles.Number, CultureInfo.CurrentCulture, out hours))
+            && hours >= 0;
+    }
+
     public static string TodayStartDate()
     {
         return FormatDateOnly(DateOnly.FromDateTime(DateTime.Today));

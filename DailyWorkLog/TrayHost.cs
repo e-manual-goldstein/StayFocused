@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using DailyWorkLog.Services;
+using Microsoft.Extensions.Logging;
 
 namespace DailyWorkLog;
 
@@ -9,21 +10,25 @@ public class TrayHost : IDisposable
     private readonly WorkPromptCoordinator _coordinator;
     private readonly WorkItemTestCoordinator _testCoordinator;
     private readonly DailyPromptScheduler _scheduler;
+    private readonly ILogger<TrayHost> _logger;
     private NotifyIcon? _notifyIcon;
     private bool _disposed;
 
     public TrayHost(
         WorkPromptCoordinator coordinator,
         WorkItemTestCoordinator testCoordinator,
-        DailyPromptScheduler scheduler)
+        DailyPromptScheduler scheduler,
+        ILogger<TrayHost> logger)
     {
         _coordinator = coordinator;
         _testCoordinator = testCoordinator;
         _scheduler = scheduler;
+        _logger = logger;
     }
 
     public void Initialize()
     {
+        _logger.LogInformation("Tray host initializing");
         _notifyIcon = new NotifyIcon
         {
             Icon = SystemIcons.Application,
@@ -39,6 +44,7 @@ public class TrayHost : IDisposable
         _notifyIcon.DoubleClick += OnNotifyIconDoubleClick;
 
         _scheduler.Start();
+        _logger.LogInformation("Tray host ready");
     }
 
     private async void OnTestGetWorkItem(object? sender, EventArgs e)
